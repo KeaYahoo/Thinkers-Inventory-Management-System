@@ -46,7 +46,7 @@ export const handleGetMyBookings: RequestHandler = async (req, res) => {
 
     if (error) throw error;
 
-    const bookings = (data ?? []) as Booking[];
+    const bookings = (data ?? []) as unknown as Booking[];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

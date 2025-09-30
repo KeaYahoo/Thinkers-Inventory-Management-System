@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { StarRating } from "@/components/StarRating";
 import { ReviewForm } from "@/components/ReviewForm";
 import { useReviews } from "@/hooks/useReviews";
@@ -91,13 +92,15 @@ export function Reviews({ tripId }: ReviewsProps) {
                   <div className="mb-4 flex items-center justify-between">
                     <Dialog.Title className="text-lg font-semibold text-gray-900">Share your experience</Dialog.Title>
                     <Dialog.Close asChild>
-                      <button
+                      <Button
                         type="button"
-                        className="rounded-full p-1 text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-brown"
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full p-1 text-gray-500 hover:text-gray-900 focus-visible:ring-primary-brown"
                       >
+                        <XMarkIcon className="h-5 w-5" aria-hidden />
                         <span className="sr-only">Close</span>
-                        ×
-                      </button>
+                      </Button>
                     </Dialog.Close>
                   </div>
                   <ReviewForm tripId={tripId} onSuccess={() => setDialogOpen(false)} />

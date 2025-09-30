@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { apiFetch, ApiError } from "@/lib/api";
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -18,19 +19,20 @@ export default function Login() {
     e.preventDefault();
     setError('');
 
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const data = await apiFetch<{ token: string }>("/auth/login", {
+        method: "POST",
+        body: { email, password },
+      });
 
-    const data = await response.json();
-
-    if (response.ok) {
       login(data.token);
-      navigate('/dashboard');
-    } else {
-      setError(data.message || 'Failed to log in.');
+      navigate("/dashboard");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message || 'Failed to log in.');
+      } else {
+        setError('Failed to log in.');
+      }
     }
   };
 

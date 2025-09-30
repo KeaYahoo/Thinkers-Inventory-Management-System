@@ -3,7 +3,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Review } from "@shared/types";
-import { useAuth } from "@/context/AuthContext";
+import { apiFetch, useAuthedApi } from "@/lib/api";
 
 export type ReviewWithUser = Review & {
   user?: {
@@ -16,49 +16,30 @@ export function useReviews(tripId?: string) {
   return useQuery<ReviewWithUser[]>({
     queryKey: ["reviews", tripId],
     enabled: Boolean(tripId),
-    queryFn: async ({ signal }) => {
+    queryFn: ({ signal }) => {
       if (!tripId) {
         throw new Error("Trip id is required to fetch reviews");
       }
 
-      const response = await fetch(`/api/trips/${tripId}/reviews`, { signal });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch reviews");
-      }
-
-      return (await response.json()) as ReviewWithUser[];
+      return apiFetch<ReviewWithUser[]>(`/trips/${tripId}/reviews`, { signal });
     },
   });
 }
 
 export function useCreateReview(tripId: string) {
   const queryClient = useQueryClient();
-  const { token } = useAuth();
+  const authedFetch = useAuthedApi();
 
   return useMutation({
-    mutationFn: async (payload: { rating: number; comment: string }) => {
-      if (!token) {
-        throw new Error("Authentication required");
+    mutationFn: (payload: { rating: number; comment: string }) => {
+      if (!tripId) {
+        throw new Error("Trip id is required to submit a review");
       }
 
-      const response = await fetch(`/api/trips/${tripId}/reviews`, {
+      return authedFetch<{ message: string; review: Review }>(`/trips/${tripId}/reviews`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+        body: payload,
       });
-
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const message = data && typeof data.message === "string" ? data.message : "Failed to submit review";
-        throw new Error(message);
-      }
-
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reviews", tripId] });

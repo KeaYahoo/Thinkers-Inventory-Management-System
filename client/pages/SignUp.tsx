@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { apiFetch, ApiError } from "@/lib/api";
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -18,19 +19,20 @@ export default function SignUp() {
     e.preventDefault();
     setError('');
 
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const data = await apiFetch<{ token: string }>("/auth/register", {
+        method: "POST",
+        body: { email, password },
+      });
 
-    const data = await response.json();
-
-    if (response.ok) {
       login(data.token);
-      navigate('/dashboard');
-    } else {
-      setError(data.message || 'Failed to create account.');
+      navigate("/dashboard");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message || 'Failed to create account.');
+      } else {
+        setError('Failed to create account.');
+      }
     }
   };
 

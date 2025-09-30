@@ -47,7 +47,7 @@ export default function Header() {
           />
         </Link>
       </div>
-      
+
       <nav className="hidden md:flex items-center space-x-8">
         <Link to="/nearby" className="text-white hover:text-brown-light transition-colors">
           Nearby
@@ -62,27 +62,28 @@ export default function Header() {
           About Us
         </Link>
       </nav>
-      
+
       <div className="hidden md:flex items-center gap-4">
         {isAuthenticated ? (
           <>
             <div className="relative" ref={accountMenuRef}>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => setAccountMenuOpen((prev) => !prev)}
                 onKeyDown={(event) => {
                   if (event.key === "Escape") {
                     setAccountMenuOpen(false);
                   }
                 }}
-                className="flex items-center gap-2 rounded-full border border-white/50 bg-white/10 px-3 py-1.5 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+                className="flex items-center gap-2 rounded-full border border-white/50 bg-white/10 px-3 py-1.5 text-white transition-colors hover:bg-white/20 focus-visible:ring-white/80 focus-visible:ring-offset-0"
                 aria-haspopup="menu"
                 aria-expanded={isAccountMenuOpen}
               >
                 <Avatar src={user?.avatar_url ?? null} alt={user?.full_name ?? user?.email ?? "User avatar"} size="sm" className="border border-white/40" />
                 <span className="text-sm font-medium">My Account</span>
                 <ChevronDownIcon className={`h-4 w-4 transition-transform ${isAccountMenuOpen ? "rotate-180" : "rotate-0"}`} />
-              </button>
+              </Button>
               {isAccountMenuOpen && (
                 <div
                   role="menu"
@@ -107,7 +108,7 @@ export default function Header() {
                 </div>
               )}
             </div>
-            <Button onClick={logout} className="bg-primary-brown hover:bg-brown-dark text-white rounded-full">
+            <Button onClick={logout} className="rounded-full">
               Log Out
             </Button>
           </>
@@ -119,7 +120,7 @@ export default function Header() {
               </Button>
             </Link>
             <Link to="/signup">
-              <Button className="bg-primary-brown hover:bg-brown-dark text-white rounded-full">
+              <Button className="rounded-full">
                 Sign Up
               </Button>
             </Link>
@@ -145,7 +146,17 @@ export default function Header() {
                 <>
                   <Link to="/dashboard" onClick={handleNavClick}>Dashboard</Link>
                   <Link to="/profile" onClick={handleNavClick}>Profile</Link>
-                  <button onClick={() => { handleNavClick(); logout(); }} className="text-left">Log Out</button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="justify-start px-0 text-left"
+                    onClick={() => {
+                      handleNavClick();
+                      logout();
+                    }}
+                  >
+                    Log Out
+                  </Button>
                 </>
               ) : (
                 <>

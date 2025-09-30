@@ -4,8 +4,11 @@
 import ChatMessage from "@/components/ChatMessage";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { useRef, useEffect, useState } from "react";
+import { apiFetch, ApiError } from "@/lib/api";
 
 type Message = { role: "user" | "ai"; content: string };
 
@@ -34,15 +37,16 @@ export default function Tours() {
 
     try {
       setIsSending(true);
-      const res = await fetch("/api/chat", {
+      const res = await apiFetch<Response>("/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           messages: [...messages, userMessage].map((m) => ({
             role: m.role === "ai" ? "assistant" : "user",
             content: m.content,
           })),
-        }),
+        },
+        rawResponse: true,
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!res.body) return;
@@ -65,6 +69,9 @@ export default function Tours() {
           return copy;
         });
       }
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Something went wrong.";
+      setMessages((curr) => [...curr, { role: "ai", content: message }]);
     } finally {
       setIsSending(false);
     }
@@ -78,7 +85,7 @@ export default function Tours() {
           <h1 className="font-light text-4xl lg:text-5xl text-gray-900">AI Trip Planner</h1>
         </div>
 
-        <div className="max-w-4xl mx-auto border rounded-lg h-[70vh] flex flex-col">
+        <div className="max-w-4xl mx-auto border rounded-xl h-[70vh] flex flex-col">
           <div className="flex-grow overflow-y-auto p-4 flex flex-col">
             {messages.map((m, idx) => (
               <ChatMessage key={idx} role={m.role} content={m.content} />
@@ -87,21 +94,22 @@ export default function Tours() {
           </div>
 
           <form onSubmit={handleSubmit} className="border-t p-4 flex items-center gap-4">
-            <input
+            <Input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about destinations, activities, or prices..."
-              className="flex-grow bg-gray-100 p-2 rounded-lg outline-none"
+              className="flex-grow"
+              disabled={isSending}
             />
-            <button
+            <Button
               type="submit"
               disabled={isSending}
-              className="bg-primary-brown text-white px-4 py-2 rounded-lg hover:bg-brown-dark flex items-center gap-2 disabled:opacity-60"
+              className="flex items-center gap-2"
             >
               <PaperAirplaneIcon className="w-4 h-4" />
               Send
-            </button>
+            </Button>
           </form>
         </div>
       </main>

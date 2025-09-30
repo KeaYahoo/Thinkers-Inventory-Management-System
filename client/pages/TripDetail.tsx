@@ -9,6 +9,7 @@ import TripMap from "@/components/TripMap";
 import { Reviews } from "@/components/Reviews";
 import { useTrip } from "@/hooks/useTrip";
 import { useAuth } from "@/context/AuthContext";
+import { apiFetch, ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -35,31 +36,30 @@ export default function TripDetail() {
     }
 
     try {
-      const response = await fetch("/api/bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ trip_id: id }),
-      });
-
-      const payload = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const message = payload && typeof payload.message === "string" ? payload.message : undefined;
-        throw new Error(message ?? "Booking failed");
+      if (!token) {
+        throw new Error("Authentication token missing");
       }
 
-      toast.success("Trip booked successfully!");
-      const bookingId = payload && typeof payload.bookingId === "string" ? payload.bookingId : null;
+      const payload = await apiFetch<{ message: string; bookingId?: string }>("/bookings", {
+        method: "POST",
+        token,
+        body: { trip_id: id },
+      });
+
+      toast.success(payload.message ?? "Trip booked successfully!");
+      const bookingId = typeof payload.bookingId === "string" ? payload.bookingId : null;
       if (bookingId) {
         navigate(`/booking-success/${bookingId}`);
       } else {
         console.warn("Booking ID missing from response payload");
       }
-    } catch (bookingError) {
-      const message = bookingError instanceof Error ? bookingError.message : "Booking failed.";
+    } catch (bookingError: unknown) {
+      const message =
+        bookingError instanceof ApiError
+          ? bookingError.message
+          : bookingError instanceof Error
+          ? bookingError.message
+          : "Booking failed.";
       toast.error(message);
     }
   };

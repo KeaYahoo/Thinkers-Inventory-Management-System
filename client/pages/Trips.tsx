@@ -1,37 +1,32 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import type { Trip } from '@shared/types';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import type { Trip } from "@shared/types";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { useTrips } from "@/hooks/useTrips";
 
 export default function Trips() {
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [price, setPrice] = useState<number[]>([10000]);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debouncedPrice, setDebouncedPrice] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchTrips = async () => {
-      setIsLoading(true);
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (price[0] < 10000) params.append('maxPrice', price[0].toString());
-
-      const response = await fetch(`/api/trips?${params.toString()}`);
-      const data = await response.json();
-      setTrips(data);
-      setIsLoading(false);
-    };
-
-    const handler = setTimeout(() => {
-      fetchTrips();
+    const handler = window.setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+      setDebouncedPrice(price[0] < 10000 ? price[0] : null);
     }, 300);
 
-    return () => clearTimeout(handler);
+    return () => window.clearTimeout(handler);
   }, [searchTerm, price]);
+
+  const { data: trips = [], isLoading, isError, error } = useTrips({
+    searchTerm: debouncedSearch || undefined,
+    maxPrice: debouncedPrice,
+  });
 
   return (
     <>
@@ -65,12 +60,20 @@ export default function Trips() {
 
         {isLoading ? (
           <p className="text-center">Loading trips...</p>
+        ) : isError ? (
+          <p className="text-center text-red-600">{error instanceof Error ? error.message : "Failed to load trips."}</p>
+        ) : trips.length === 0 ? (
+          <p className="text-center text-gray-600">No trips match your filters yet. Try widening your search.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            {trips.map((trip) => (
+            {trips.map((trip: Trip) => (
               <Link to={`/trips/${trip.id}`} key={trip.id}>
                 <Card className="overflow-hidden h-full flex flex-col group">
-                  <img src={trip.image_url} alt={trip.name} className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <img
+                    src={trip.image_url}
+                    alt={trip.name}
+                    className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                   <CardHeader>
                     <CardTitle>{trip.name}</CardTitle>
                   </CardHeader>

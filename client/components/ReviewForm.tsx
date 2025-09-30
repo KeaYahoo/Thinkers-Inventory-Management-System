@@ -5,6 +5,9 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { StarRating } from "@/components/StarRating";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useCreateReview } from "@/hooks/useReviews";
 import { toast } from "sonner";
 
@@ -66,7 +69,7 @@ export function ReviewForm({ tripId, onSuccess }: ReviewFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        <input
+        <Input
           type="hidden"
           id="rating"
           {...register("rating", {
@@ -74,9 +77,9 @@ export function ReviewForm({ tripId, onSuccess }: ReviewFormProps) {
             max: { value: 5, message: "Ratings can be up to 5 stars." },
           })}
         />
-        <label className="text-sm font-medium text-gray-900" id="rating-label" htmlFor="rating">
+        <Label id="rating-label" htmlFor="rating" className="text-sm font-medium text-velvet-green">
           Rating
-        </label>
+        </Label>
         <StarRating
           rating={ratingValue}
           value={ratingValue}
@@ -88,14 +91,14 @@ export function ReviewForm({ tripId, onSuccess }: ReviewFormProps) {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-900" htmlFor="comment">
+        <Label htmlFor="comment" className="text-sm font-medium text-velvet-green">
           Share your experience
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="comment"
           rows={4}
           placeholder="Tell fellow travelers what made this trip special."
-          className="w-full resize-none rounded-lg border border-border bg-white p-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-brown"
+          className="resize-none"
           {...register("comment", {
             required: "Please add a short comment.",
             minLength: { value: 10, message: "Comments should be at least 10 characters." },

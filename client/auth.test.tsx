@@ -13,9 +13,16 @@ import {
 import { act } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, unstable_HistoryRouter as HistoryRouter } from "react-router-dom";
+import { queryClient as appQueryClient } from "@/lib/queryClient";
 import { createMemoryHistory } from "history";
+import type { History } from "history";
 
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+declare global {
+  // eslint-disable-next-line no-var
+  var IS_REACT_ACT_ENVIRONMENT: boolean;
+}
+
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 import { TooltipProvider } from "./components/ui/tooltip";
 import { AuthProvider } from "./context/AuthContext";
@@ -62,14 +69,14 @@ describe("authentication flow", () => {
 
   const renderApp = (initialPath = "/") => {
     const history = createMemoryHistory({ initialEntries: [initialPath] });
-    const queryClient = new QueryClient();
+    const queryClient = new QueryClient({ defaultOptions: appQueryClient.getDefaultOptions() });
 
     const view = render(
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <AuthProvider>
             <HistoryRouter
-              history={history}
+              history={history as unknown as any}
               future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
             >
               <Routes>
@@ -104,31 +111,38 @@ describe("authentication flow", () => {
   it("should allow a user to log in, view the dashboard, and log out", async () => {
     const mockFetch = vi.fn(async (...args: FetchArgs) => {
       const [input, init] = args;
-      const url = typeof input === "string" ? input : input.url;
+      const targetUrl =
+        typeof input === 'string'
+          ? input
+          : input instanceof Request
+          ? input.url
+          : input instanceof URL
+          ? input.toString()
+          : String(input);
 
       const jsonResponse = (body: unknown, status = 200) =>
         new Response(JSON.stringify(body), {
           status,
-          headers: { "Content-Type": "application/json" },
+          headers: { 'Content-Type': 'application/json' },
         });
 
-      if (url.endsWith("/api/auth/login") && init?.method === "POST") {
-        return jsonResponse({ token: "fake-jwt-token" });
+      if (targetUrl.endsWith('/api/auth/login') && init?.method === 'POST') {
+        return jsonResponse({ token: 'fake-jwt-token' });
       }
 
-      if (url.endsWith("/api/destinations")) {
+      if (targetUrl.endsWith('/api/destinations')) {
         return jsonResponse([]);
       }
 
-      if (url.endsWith("/api/services")) {
+      if (targetUrl.endsWith('/api/services')) {
         return jsonResponse([]);
       }
 
-      if (url.endsWith("/api/my-bookings")) {
+      if (targetUrl.endsWith('/api/my-bookings')) {
         return jsonResponse([]);
       }
 
-      if (url.includes("/api/trips")) {
+      if (targetUrl.includes('/api/trips')) {
         return jsonResponse([]);
       }
 

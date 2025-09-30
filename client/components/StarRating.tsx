@@ -4,6 +4,8 @@
 import { useCallback } from "react";
 import { StarIcon as SolidStarIcon } from "@heroicons/react/24/solid";
 import { StarIcon as OutlineStarIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const sizeMap = {
   sm: "h-4 w-4",
@@ -79,19 +81,22 @@ export function StarRating({
 
           if (isInteractive) {
             return (
-              <button
+              <Button
                 key={value}
                 type="button"
                 role="radio"
                 aria-checked={rest.value === value}
                 onClick={() => rest.onChange(value)}
-                className={`transition-colors duration-150 ease-in-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-brown ${
-                  filled ? "text-primary-brown" : "text-gray-300 hover:text-primary-brown"
-                }`}
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 p-0 transition-colors duration-150 ease-in-out focus-visible:ring-primary-brown",
+                  filled ? "text-primary-brown" : "text-gray-300 hover:text-primary-brown",
+                )}
               >
                 <Icon className={sizeMap[size]} aria-hidden />
                 <span className="sr-only">{value} Star</span>
-              </button>
+              </Button>
             );
           }
 

@@ -136,7 +136,7 @@ export default function Dashboard() {
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
-                  <button
+                  <Button
                     key={tab.id}
                     id={`tab-${tab.id}`}
                     type="button"
@@ -144,14 +144,13 @@ export default function Dashboard() {
                     aria-selected={isActive}
                     aria-controls={`${tab.id}-panel`}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`rounded-full px-5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-brown focus-visible:ring-offset-2 ${
-                      isActive
-                        ? "bg-primary-brown text-white shadow"
-                        : "text-gray-600 hover:text-gray-900"
+                    variant={isActive ? "secondary" : "ghost"}
+                    className={`rounded-full px-5 py-2 text-sm font-medium transition-colors focus-visible:ring-primary-brown focus-visible:ring-offset-2 ${
+                      isActive ? "text-white shadow" : "text-gray-600 hover:text-gray-900"
                     }`}
                   >
                     {tab.label}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
