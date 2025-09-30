@@ -1,6 +1,7 @@
 /**
  * Trip Detail Page: now redirects successful bookings to the confirmation screen while preserving the existing trip layout.
  */
+import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,24 @@ import Activities from "@/components/Activities";
 import TripMap from "@/components/TripMap";
 import { Reviews } from "@/components/Reviews";
 import { useTrip } from "@/hooks/useTrip";
+import { useTripAvailability } from "@/hooks/useTripAvailability";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch, ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router-dom";
+
+const formatAvailabilityDate = (isoDate: string) => {
+  const parsed = new Date(isoDate);
+  if (Number.isNaN(parsed.getTime())) {
+    return isoDate;
+  }
+  return parsed.toLocaleDateString(undefined, {
+    weekday: "short",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
 
 export default function TripDetail() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +38,35 @@ export default function TripDetail() {
     isError,
     error,
   } = useTrip(id);
+  const { data: availability = [], isLoading: isAvailabilityLoading } = useTripAvailability(id);
+  const [selectedStartDate, setSelectedStartDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (availability.length > 0) {
+      setSelectedStartDate((previous) => {
+        if (previous && availability.some((slot) => slot.start_date === previous)) {
+          return previous;
+        }
+        return availability[0].start_date;
+      });
+      return;
+    }
+
+    if (trip?.start_date) {
+      setSelectedStartDate(trip.start_date);
+    } else {
+      setSelectedStartDate(null);
+    }
+  }, [availability, trip?.start_date]);
+
+  const selectedAvailability = useMemo(() => {
+    if (!selectedStartDate) {
+      return undefined;
+    }
+    return availability.find((slot) => slot.start_date === selectedStartDate);
+  }, [availability, selectedStartDate]);
+
+  const displayPrice = selectedAvailability?.price ?? trip?.price ?? 0;
 
   const handleBooking = async () => {
     if (!id) {
@@ -40,10 +84,15 @@ export default function TripDetail() {
         throw new Error("Authentication token missing");
       }
 
+      const startDateForBooking = selectedStartDate ?? availability[0]?.start_date ?? trip?.start_date;
+      if (!startDateForBooking) {
+        throw new Error("No start date available for booking");
+      }
+
       const payload = await apiFetch<{ message: string; bookingId?: string }>("/bookings", {
         method: "POST",
         token,
-        body: { trip_id: id },
+        body: { trip_id: id, start_date: startDateForBooking },
       });
 
       toast.success(payload.message ?? "Trip booked successfully!");
@@ -113,10 +162,39 @@ export default function TripDetail() {
             </article>
 
             <aside className="h-fit space-y-6 rounded-2xl border border-border bg-white p-6 shadow-xl">
-              <div>
-                <p className="text-sm uppercase tracking-wide text-gray-500">Investment</p>
-                <p className="mt-2 text-3xl font-semibold text-primary-brown">R{trip.price}</p>
-                <p className="text-sm text-gray-500">per person</p>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm uppercase tracking-wide text-gray-500">Investment</p>
+                  <p className="mt-2 text-3xl font-semibold text-primary-brown">R{displayPrice}</p>
+                  <p className="text-sm text-gray-500">per person</p>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="trip-start-date" className="text-sm font-medium text-gray-700">
+                    Choose your start date
+                  </label>
+                  {isAvailabilityLoading ? (
+                    <p className="text-sm text-gray-500">Checking availability...</p>
+                  ) : availability.length > 0 ? (
+                    <select
+                      id="trip-start-date"
+                      value={selectedStartDate ?? ""}
+                      onChange={(event) => setSelectedStartDate(event.target.value)}
+                      className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-brown"
+                    >
+                      {availability.map((slot) => (
+                        <option key={slot.start_date} value={slot.start_date}>
+                          {formatAvailabilityDate(slot.start_date)} · R{slot.price}
+                        </option>
+                      ))}
+                    </select>
+                  ) : trip.start_date ? (
+                    <p className="text-sm text-gray-500">
+                      Next start date: {formatAvailabilityDate(trip.start_date)}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500">Currently unavailable.</p>
+                  )}
+                </div>
               </div>
               <Button
                 type="button"
@@ -144,4 +222,3 @@ export default function TripDetail() {
     </>
   );
 }
-

@@ -9,7 +9,7 @@ import { handleChat } from "./routes/chat";
 import { handleRegister, handleLogin } from "./routes/auth";
 import { handleGetDestinations } from "./routes/destinations";
 import { handleGetServices } from "./routes/services";
-import { handleGetTrips, handleGetTripById } from "./routes/trips";
+import { handleGetTrips, handleGetTripById, handleGetTripAvailability } from "./routes/trips";
 import { authMiddleware } from "./middleware/auth";
 import { handleCreateBooking, handleGetMyBookings } from "./routes/bookings";
 import { handleGetBookingById } from "./routes/booking";
@@ -46,6 +46,7 @@ export function createServer() {
   app.get("/api/services", handleGetServices);
   app.get("/api/trips", handleGetTrips);
   app.get("/api/trips/:id", handleGetTripById);
+  app.get("/api/trips/:id/availability", handleGetTripAvailability);
   app.get("/api/trips/:tripId/activities", handleGetActivitiesByTripId);
   app.get("/api/trips/:tripId/locations", handleGetLocationsByTripId);
   app.get("/api/trips/:tripId/reviews", handleGetReviewsByTripId);

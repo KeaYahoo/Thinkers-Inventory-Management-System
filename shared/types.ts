@@ -39,6 +39,11 @@ export interface Trip {
   longitude?: number;
 }
 
+export interface TripAvailability {
+  start_date: string;
+  price: number;
+}
+
 export interface Booking {
   id: string;
   user_id: string;
