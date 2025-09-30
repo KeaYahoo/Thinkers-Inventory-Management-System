@@ -4,8 +4,9 @@
 import type { RequestHandler } from "express";
 import { z } from "zod";
 import { supabase } from "../lib/supabaseClient";
+import type { AuthenticatedRequest } from "../middleware/auth";
 
-const REVIEW_COLUMNS = "id, rating, comment, user_id, trip_id, created_at";
+const REVIEW_COLUMNS = "id, rating, comment, user_id, trip_id, created_at, is_approved";
 const USER_COLUMNS = "id, email";
 
 const createReviewSchema = z.object({
@@ -25,11 +26,12 @@ export const handleGetReviewsByTripId: RequestHandler = async (req, res) => {
       .from("reviews")
       .select(`${REVIEW_COLUMNS}, user:users(${USER_COLUMNS})`)
       .eq("trip_id", tripId)
+      .eq("is_approved", true)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    return res.status(200).json(data);
+    return res.status(200).json(data ?? []);
   } catch (error) {
     console.error('[API Error in handleGetReviewsByTripId]:', error);
     return res.status(500).json({
@@ -42,7 +44,7 @@ export const handleGetReviewsByTripId: RequestHandler = async (req, res) => {
 export const handleCreateReview: RequestHandler = async (req, res) => {
   try {
     const { tripId } = req.params as { tripId?: string };
-    const userId = (req as { userId?: string | number }).userId;
+    const { userId } = req as AuthenticatedRequest;
 
     if (!tripId) {
       return res.status(400).json({ message: "Trip identifier is required." });
@@ -69,6 +71,7 @@ export const handleCreateReview: RequestHandler = async (req, res) => {
       comment: parseResult.data.comment,
       trip_id: tripId,
       user_id: userId,
+      is_approved: false,
     };
 
     const { data, error } = await supabase
@@ -80,7 +83,7 @@ export const handleCreateReview: RequestHandler = async (req, res) => {
     if (error) throw error;
 
     return res.status(201).json({
-      message: "Review submitted successfully",
+      message: "Review submitted for moderation",
       review: data,
     });
   } catch (error) {

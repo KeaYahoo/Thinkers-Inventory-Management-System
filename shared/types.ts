@@ -70,6 +70,14 @@ export interface Review {
   user_id: string;
   trip_id: string;
   created_at: string;
+  is_approved?: boolean;
+}
+
+export interface ReviewWithUser extends Review {
+  user?: {
+    id: string;
+    email: string;
+  };
 }
 
 export interface User {
@@ -84,4 +92,3 @@ export interface PaymentResponse {
   bookingId: string;
   paymentUrl: string;
 }
-

@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Bars3Icon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
 export default function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
   const { data: user } = useUser();
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAccountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -61,6 +61,11 @@ export default function Header() {
         <Link to="/about" className="text-white hover:text-brown-light transition-colors">
           About Us
         </Link>
+        {isAdmin && (
+          <Link to="/admin" className="text-white hover:text-brown-light transition-colors">
+            Admin
+          </Link>
+        )}
       </nav>
 
       <div className="hidden md:flex items-center gap-4">
@@ -105,6 +110,16 @@ export default function Header() {
                   >
                     Profile
                   </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                      onClick={() => setAccountMenuOpen(false)}
+                      role="menuitem"
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
@@ -146,6 +161,7 @@ export default function Header() {
                 <>
                   <Link to="/dashboard" onClick={handleNavClick}>Dashboard</Link>
                   <Link to="/profile" onClick={handleNavClick}>Profile</Link>
+                  {isAdmin && <Link to="/admin" onClick={handleNavClick}>Admin</Link>}
                   <Button
                     type="button"
                     variant="ghost"

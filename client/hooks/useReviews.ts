@@ -2,15 +2,8 @@
  * Data Fetching: React Query hooks for pulling and submitting trip reviews with cache invalidation.
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Review } from "@shared/types";
+import type { Review, ReviewWithUser } from "@shared/types";
 import { apiFetch, useAuthedApi } from "@/lib/api";
-
-export type ReviewWithUser = Review & {
-  user?: {
-    id: string;
-    email: string;
-  };
-};
 
 export function useReviews(tripId?: string) {
   return useQuery<ReviewWithUser[]>({

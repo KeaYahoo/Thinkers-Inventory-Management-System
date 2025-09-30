@@ -3,10 +3,11 @@
  */
 import type { RequestHandler } from "express";
 import { supabase } from "../lib/supabaseClient";
+import type { AuthenticatedRequest } from "../middleware/auth";
 
 export const handleCreatePayment: RequestHandler = async (req, res) => {
   try {
-    const userId = (req as { userId?: string | number }).userId;
+    const { userId } = req as AuthenticatedRequest;
     const { trip_id: tripId, start_date: startDate } = req.body as {
       trip_id?: string;
       start_date?: string;

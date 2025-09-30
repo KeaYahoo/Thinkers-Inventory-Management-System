@@ -11,13 +11,14 @@ import { handleGetDestinations } from "./routes/destinations";
 import { handleGetServices } from "./routes/services";
 import { handleGetTrips, handleGetTripById, handleGetTripAvailability } from "./routes/trips";
 import { handleCreatePayment } from "./routes/payments";
-import { authMiddleware } from "./middleware/auth";
+import { authMiddleware, adminMiddleware } from "./middleware/auth";
 import { handleCreateBooking, handleGetMyBookings } from "./routes/bookings";
 import { handleGetBookingById } from "./routes/booking";
 import { handleGetActivitiesByTripId } from "./routes/activities";
 import { handleGetLocationsByTripId } from "./routes/locations";
 import { handleGetReviewsByTripId, handleCreateReview } from "./routes/reviews";
 import { handleGetCurrentUser, handleUpdateUser } from "./routes/users";
+import { handleGetPendingReviews, handleApproveReview, handleDeleteReview } from "./routes/admin";
 
 export function createServer() {
   const jwtSecret = process.env.JWT_SECRET;
@@ -56,6 +57,9 @@ export function createServer() {
   // Protected routes
   app.post("/api/bookings", authMiddleware, handleCreateBooking);
   app.post("/api/payments", authMiddleware, handleCreatePayment);
+  app.get("/api/admin/reviews/pending", authMiddleware, adminMiddleware, handleGetPendingReviews);
+  app.post("/api/admin/reviews/:reviewId/approve", authMiddleware, adminMiddleware, handleApproveReview);
+  app.delete("/api/admin/reviews/:reviewId", authMiddleware, adminMiddleware, handleDeleteReview);
   app.get("/api/my-bookings", authMiddleware, handleGetMyBookings);
   app.get("/api/bookings/:bookingId", authMiddleware, handleGetBookingById);
   app.get("/api/users/me", authMiddleware, handleGetCurrentUser);

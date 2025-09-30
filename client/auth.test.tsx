@@ -127,7 +127,7 @@ describe("authentication flow", () => {
         });
 
       if (targetUrl.endsWith('/api/auth/login') && init?.method === 'POST') {
-        return jsonResponse({ token: 'fake-jwt-token' });
+        return jsonResponse({ token: 'fake-jwt-token', role: 'user' });
       }
 
       if (targetUrl.endsWith('/api/destinations')) {
