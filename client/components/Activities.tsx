@@ -22,10 +22,12 @@ export default function Activities({ tripId }: ActivitiesProps) {
   }
 
   return (
-    <section className="bg-white px-6 py-12 md:py-16">
+    <section className="bg-white px-6 py-12 md:py-16" aria-labelledby="activities-heading">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <header className="space-y-2">
-          <h2 className="text-2xl font-semibold text-velvet-green">What You'll Do</h2>
+          <h2 id="activities-heading" className="text-2xl font-semibold text-velvet-green">
+            What you'll do
+          </h2>
           <p className="text-sm text-gray-600">Curated experiences to complete your journey.</p>
         </header>
 
@@ -33,11 +35,14 @@ export default function Activities({ tripId }: ActivitiesProps) {
           <div
             className="flex flex-col gap-6 md:flex-row md:overflow-x-auto md:scroll-smooth md:[scrollbar-width:none]"
             tabIndex={0}
+            aria-busy="true"
+            aria-label="Loading activities"
           >
             {skeletonPlaceholders.map((_, index) => (
               <div
                 key={index}
                 className="flex w-full flex-shrink-0 flex-col gap-4 rounded-2xl border border-border bg-white p-4 shadow-sm animate-pulse md:w-72"
+                aria-hidden
               >
                 <div className="h-40 w-full rounded-xl bg-muted" />
                 <div className="h-4 w-3/4 rounded bg-muted" />
@@ -47,7 +52,7 @@ export default function Activities({ tripId }: ActivitiesProps) {
             ))}
           </div>
         ) : isError ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600" role="alert">
             We couldn't load the activities right now. Please try again later.
           </div>
         ) : activities.length === 0 ? (
@@ -56,6 +61,8 @@ export default function Activities({ tripId }: ActivitiesProps) {
           <div
             className="flex flex-col gap-6 md:flex-row md:overflow-x-auto md:scroll-smooth md:[scrollbar-width:none]"
             tabIndex={0}
+            aria-label="Trip activities"
+            aria-describedby="activities-heading"
           >
             {activities.map((activity: Activity) => (
               <article
@@ -70,7 +77,7 @@ export default function Activities({ tripId }: ActivitiesProps) {
                   />
                 </div>
                 <div className="flex flex-1 flex-col gap-3 p-5">
-                  <h4 className="text-lg font-semibold text-gray-900">{activity.name}</h4>
+                  <h3 className="text-lg font-semibold text-gray-900">{activity.name}</h3>
                   <p className="flex-1 text-sm leading-relaxed text-gray-600">{activity.description}</p>
                 </div>
               </article>

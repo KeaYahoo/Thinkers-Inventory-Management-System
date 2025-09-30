@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import Activities from "@/components/Activities";
 import TripMap from "@/components/TripMap";
@@ -69,6 +70,12 @@ export default function TripDetail() {
   }, [availability, selectedStartDate]);
 
   const displayPrice = selectedAvailability?.price ?? trip?.price ?? 0;
+
+  const seoTitle = trip ? `${trip.name} in ${trip.location}` : "Trip Details";
+  const seoDescription = trip
+    ? `Plan your stay at ${trip.name} in ${trip.location}. Discover activities, maps, and traveller reviews.`
+    : "Explore curated trip details and availability with Trvlsync.";
+  const seoImage = trip?.image_url;
 
   const handleBooking = async () => {
     if (!id) {
@@ -212,6 +219,7 @@ export default function TripDetail() {
 
   return (
     <>
+      <Seo title={seoTitle} description={seoDescription} image={seoImage} />
       <Header />
       <main className="bg-white">{renderContent()}</main>
       <Footer />

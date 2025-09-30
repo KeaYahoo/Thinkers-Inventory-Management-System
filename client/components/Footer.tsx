@@ -21,7 +21,7 @@ export default function Footer() {
 
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wide text-brown-light">Navigate</h3>
-            <nav className="mt-4 space-y-2 text-sm">
+            <nav aria-label="Footer" className="mt-4 space-y-2 text-sm">
               <Link className="block text-gray-200 transition hover:text-white" to="/nearby">
                 Nearby
               </Link>
@@ -75,3 +75,4 @@ export default function Footer() {
     </footer>
   );
 }
+

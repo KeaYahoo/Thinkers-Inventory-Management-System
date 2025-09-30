@@ -1,11 +1,8 @@
-/**
- * Dashboard Personalization: keeps the tailored greeting, consumes the new partitioned bookings hook,
- * and presents upcoming versus past trips in an accessible tabbed layout.
- */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Seo } from "@/components/Seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -34,6 +31,18 @@ export default function Dashboard() {
     ? "Loading your profile..."
     : "Track your adventures and manage upcoming trips.";
 
+  const seoTitle = useMemo(() => {
+    if (user?.full_name) {
+      return `${user.full_name}'s travel dashboard`;
+    }
+    if (user?.email) {
+      return `${user.email}'s travel dashboard`;
+    }
+    return "Your personalised travel dashboard";
+  }, [user?.email, user?.full_name]);
+
+  const seoDescription = "Review upcoming adventures, revisit past trips, and manage your Trvlsync profile.";
+
   const errorMessage =
     bookingsError instanceof Error
       ? bookingsError.message
@@ -43,21 +52,21 @@ export default function Dashboard() {
     if (items.length === 0) {
       if (tab === "upcoming") {
         return (
-          <div className="text-center py-16 border rounded-lg">
-            <h3 className="text-2xl font-medium mb-4">No upcoming adventures yet!</h3>
-            <p className="text-gray-600 mb-6">
+          <div className="rounded-lg border px-6 py-16 text-center">
+            <h3 className="mb-4 text-2xl font-medium">No upcoming adventures yet!</h3>
+            <p className="mb-6 text-gray-600">
               Ready for your next escape? Discover curated getaways tailored for you.
             </p>
             <Link to="/trips">
-              <Button className="bg-primary-brown hover:bg-brown-dark">Explore Trips</Button>
+              <Button className="bg-primary-brown hover:bg-brown-dark">Explore trips</Button>
             </Link>
           </div>
         );
       }
 
       return (
-        <div className="text-center py-16 border rounded-lg text-gray-600">
-          <h3 className="text-2xl font-medium mb-4">No past trips yet.</h3>
+        <div className="rounded-lg border px-6 py-16 text-center text-gray-600">
+          <h3 className="mb-4 text-2xl font-medium">No past trips yet.</h3>
           <p>Book your first adventure to start building unforgettable memories.</p>
         </div>
       );
@@ -72,26 +81,28 @@ export default function Dashboard() {
           const bookedOnLabel = new Date(booking.created_at).toLocaleDateString();
 
           return (
-            <Card
+            <article
               key={booking.id}
-              className="flex flex-col md:flex-row items-center overflow-hidden"
+              className="focus-within:ring-primary-brown focus-within:ring-offset-2"
             >
-              <img
-                src={booking.trips.image_url}
-                alt={booking.trips.name}
-                className="w-full md:w-1/3 h-64 md:h-full object-cover"
-              />
-              <div className="flex-1">
-                <CardHeader>
-                  <CardTitle>{booking.trips.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <p className="text-gray-600">{booking.trips.location}</p>
-                  <p className="text-sm text-gray-500">Trip starts: {tripStartLabel}</p>
-                  <p className="text-sm text-gray-500">Booked on: {bookedOnLabel}</p>
-                </CardContent>
-              </div>
-            </Card>
+              <Card className="flex flex-col items-center overflow-hidden md:flex-row">
+                <img
+                  src={booking.trips.image_url}
+                  alt={booking.trips.name}
+                  className="h-64 w-full object-cover md:h-full md:w-1/3"
+                />
+                <div className="flex-1">
+                  <CardHeader>
+                    <CardTitle>{booking.trips.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p className="text-gray-600">{booking.trips.location}</p>
+                    <p className="text-sm text-gray-500">Trip starts: {tripStartLabel}</p>
+                    <p className="text-sm text-gray-500">Booked on: {bookedOnLabel}</p>
+                  </CardContent>
+                </div>
+              </Card>
+            </article>
           );
         })}
       </div>
@@ -99,28 +110,32 @@ export default function Dashboard() {
   };
 
   const tabs: Array<{ id: TabKey; label: string }> = [
-    { id: "upcoming", label: `Upcoming Trips (${upcomingBookings.length})` },
-    { id: "past", label: `Past Trips (${pastBookings.length})` },
+    { id: "upcoming", label: `Upcoming trips (${upcomingBookings.length})` },
+    { id: "past", label: `Past trips (${pastBookings.length})` },
   ];
 
   return (
     <>
+      <Seo title={seoTitle} description={seoDescription} />
       <Header />
-      <main className="pt-32 pb-20 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto space-y-12">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <main className="px-6 pb-20 pt-32 lg:px-12" aria-labelledby="dashboard-heading">
+        <div className="mx-auto flex max-w-7xl flex-col gap-12">
+          <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-4xl lg:text-5xl font-light text-gray-900">{heading}</h1>
+              <h1 id="dashboard-heading" className="text-4xl font-light text-gray-900 lg:text-5xl">
+                {heading}
+              </h1>
               <p className="text-gray-600">{subheading}</p>
             </div>
             <Button
               onClick={logout}
+              type="button"
               variant="outline"
-              className="rounded-full self-start md:self-auto"
+              className="self-start rounded-full md:self-auto"
             >
-              Log Out
+              Log out
             </Button>
-          </div>
+          </header>
 
           <section aria-labelledby="bookings-heading" className="space-y-6">
             <div>
@@ -132,7 +147,11 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div role="tablist" aria-label="Bookings categories" className="inline-flex rounded-full border border-gray-200 bg-white p-1 shadow-sm">
+            <div
+              role="tablist"
+              aria-label="Bookings categories"
+              className="inline-flex rounded-full border border-gray-200 bg-white p-1 shadow-sm"
+            >
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -159,9 +178,10 @@ export default function Dashboard() {
               role="tabpanel"
               id={`${activeTab}-panel`}
               aria-labelledby={`tab-${activeTab}`}
+              aria-live="polite"
             >
               {isBookingsLoading ? (
-                <p>Loading your bookings...</p>
+                <p className="text-gray-600">Loading your bookings...</p>
               ) : isBookingsError ? (
                 <div className="rounded-lg border border-red-100 bg-red-50 p-6 text-red-700">
                   {errorMessage}

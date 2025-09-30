@@ -21,8 +21,8 @@ export default function Services() {
 
   if (isLoading) {
     return (
-      <section className="py-20 px-6 lg:px-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto text-center">
+      <section className="bg-gray-50 py-20 px-6 lg:px-12">
+        <div className="mx-auto max-w-7xl text-center">
           <p>Loading services...</p>
         </div>
       </section>
@@ -31,8 +31,8 @@ export default function Services() {
 
   if (isError) {
     return (
-      <section className="py-20 px-6 lg:px-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto text-center text-red-500">
+      <section className="bg-gray-50 py-20 px-6 lg:px-12">
+        <div className="mx-auto max-w-7xl text-center text-red-500">
           <p>Error: Failed to fetch services.</p>
         </div>
       </section>
@@ -40,43 +40,39 @@ export default function Services() {
   }
 
   return (
-    <section className="py-20 px-6 lg:px-12 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-2xl font-medium text-velvet-green mb-12">Our Services</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          {/* Services Grid */}
+    <section className="bg-gray-50 py-20 px-6 lg:px-12" aria-labelledby="services-heading">
+      <div className="mx-auto max-w-7xl">
+        <h2 id="services-heading" className="mb-12 text-2xl font-medium text-velvet-green">
+          Our services
+        </h2>
+
+        <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
           <div className="order-1">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
               {services.map((service: Service) => {
-                const key = (service.icon_name || '').toLowerCase();
+                const key = (service.icon_name || "").toLowerCase();
                 const IconComp = ICON_MAP[key] || EllipsisHorizontalCircleIcon;
                 return (
-                  <div key={service.id} className="text-center">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-lg mb-6">
-                      <IconComp className="w-10 h-10 text-primary-brown" />
+                  <article key={service.id} className="text-center">
+                    <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-lg">
+                      <IconComp className="h-10 w-10 text-primary-brown" aria-hidden />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                      {service.title}
-                    </h3>
-                    <p className="text-gray-600 text-base leading-relaxed">
-                      {service.description}
-                    </p>
-                  </div>
+                    <h3 className="mb-4 text-xl font-semibold text-gray-900">{service.title}</h3>
+                    <p className="text-base leading-relaxed text-gray-600">{service.description}</p>
+                  </article>
                 );
               })}
             </div>
           </div>
 
-          {/* Services Image */}
           <div className="relative order-2" style={{ flexShrink: 0 }}>
             <img
               src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-              alt="Beautiful landscape"
-              className="object-cover rounded-2xl"
-              style={{ width: '572px', height: '696px', flexShrink: 0 }}
+              alt="Two travellers enjoying a South African landscape"
+              className="rounded-2xl object-cover"
+              style={{ width: "572px", height: "696px", flexShrink: 0 }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-2xl"></div>
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/30 to-transparent" aria-hidden />
           </div>
         </div>
       </div>

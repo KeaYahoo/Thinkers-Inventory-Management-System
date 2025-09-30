@@ -1,7 +1,7 @@
 /**
  * Review Form: modal content that lets authenticated travelers submit ratings with validation and mutation feedback.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { StarRating } from "@/components/StarRating";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,22 @@ export function ReviewForm({ tripId, onSuccess }: ReviewFormProps) {
   const ratingValue = watch("rating");
   const mutation = useCreateReview(tripId);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const commentFieldRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const ratingRegistration = register("rating", {
+    min: { value: 1, message: "Please select a rating." },
+    max: { value: 5, message: "Ratings can be up to 5 stars." },
+  });
+
+  const commentRegistration = register("comment", {
+    required: "Please add a short comment.",
+    minLength: { value: 10, message: "Comments should be at least 10 characters." },
+    maxLength: { value: 1000, message: "Comments can be up to 1000 characters." },
+  });
+
+  useEffect(() => {
+    commentFieldRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (mutation.isSuccess) {
@@ -66,17 +82,12 @@ export function ReviewForm({ tripId, onSuccess }: ReviewFormProps) {
     mutation.mutate(values);
   };
 
+  const { ref: commentRegistrationRef, ...commentFieldProps } = commentRegistration;
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        <Input
-          type="hidden"
-          id="rating"
-          {...register("rating", {
-            min: { value: 1, message: "Please select a rating." },
-            max: { value: 5, message: "Ratings can be up to 5 stars." },
-          })}
-        />
+        <Input type="hidden" id="rating" aria-hidden {...ratingRegistration} />
         <Label id="rating-label" htmlFor="rating" className="text-sm font-medium text-velvet-green">
           Rating
         </Label>
@@ -87,7 +98,11 @@ export function ReviewForm({ tripId, onSuccess }: ReviewFormProps) {
           onChange={(value) => setValue("rating", value, { shouldValidate: true })}
           size="lg"
         />
-        {errors.rating && <p className="text-sm text-red-500">{errors.rating.message}</p>}
+        {errors.rating && (
+          <p className="text-sm text-red-500" role="alert">
+            {errors.rating.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -99,23 +114,32 @@ export function ReviewForm({ tripId, onSuccess }: ReviewFormProps) {
           rows={4}
           placeholder="Tell fellow travelers what made this trip special."
           className="resize-none"
-          {...register("comment", {
-            required: "Please add a short comment.",
-            minLength: { value: 10, message: "Comments should be at least 10 characters." },
-            maxLength: { value: 1000, message: "Comments can be up to 1000 characters." },
-          })}
+          aria-invalid={Boolean(errors.comment)}
+          {...commentFieldProps}
+          ref={(element) => {
+            commentFieldRef.current = element;
+            commentRegistrationRef(element);
+          }}
         />
-        {errors.comment && <p className="text-sm text-red-500">{errors.comment.message}</p>}
+        {errors.comment && (
+          <p className="text-sm text-red-500" role="alert">
+            {errors.comment.message}
+          </p>
+        )}
       </div>
 
-      {submitError && <p className="text-sm text-red-500">{submitError}</p>}
+      {submitError && (
+        <p className="text-sm text-red-500" role="alert">
+          {submitError}
+        </p>
+      )}
 
       <div className="flex justify-end">
         <Button type="submit" disabled={mutation.isPending} className="min-w-[8rem]">
           {mutation.isPending ? (
             <span className="flex items-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Submitting…
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden />
+              Submitting...
             </span>
           ) : (
             "Submit review"
@@ -125,4 +149,3 @@ export function ReviewForm({ tripId, onSuccess }: ReviewFormProps) {
     </form>
   );
 }
-

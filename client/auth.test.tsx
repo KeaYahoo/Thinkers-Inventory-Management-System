@@ -16,6 +16,7 @@ import { Routes, Route, unstable_HistoryRouter as HistoryRouter } from "react-ro
 import { queryClient as appQueryClient } from "@/lib/queryClient";
 import { createMemoryHistory } from "history";
 import type { History } from "history";
+import { HelmetProvider } from "react-helmet-async";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -72,37 +73,39 @@ describe("authentication flow", () => {
     const queryClient = new QueryClient({ defaultOptions: appQueryClient.getDefaultOptions() });
 
     const view = render(
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <AuthProvider>
-            <HistoryRouter
-              history={history as unknown as any}
-              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-            >
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/nearby" element={<Nearby />} />
-                <Route path="/destinations" element={<Destinations />} />
-                <Route path="/trips" element={<Trips />} />
-                <Route path="/trips/:id" element={<TripDetail />} />
-                <Route path="/tours" element={<Tours />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/login" element={<Login />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </HistoryRouter>
-          </AuthProvider>
-        </TooltipProvider>
-      </QueryClientProvider>,
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AuthProvider>
+              <HistoryRouter
+                history={history as unknown as History}
+                future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+              >
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/nearby" element={<Nearby />} />
+                  <Route path="/destinations" element={<Destinations />} />
+                  <Route path="/trips" element={<Trips />} />
+                  <Route path="/trips/:id" element={<TripDetail />} />
+                  <Route path="/tours" element={<Tours />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/signup" element={<SignUp />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </HistoryRouter>
+            </AuthProvider>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </HelmetProvider>,
     );
 
     return { history, queryClient, ...view };
@@ -112,7 +115,7 @@ describe("authentication flow", () => {
     const mockFetch = vi.fn(async (...args: FetchArgs) => {
       const [input, init] = args;
       const targetUrl =
-        typeof input === 'string'
+        typeof input === "string"
           ? input
           : input instanceof Request
           ? input.url
@@ -123,30 +126,30 @@ describe("authentication flow", () => {
       const jsonResponse = (body: unknown, status = 200) =>
         new Response(JSON.stringify(body), {
           status,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         });
 
-      if (targetUrl.endsWith('/api/auth/login') && init?.method === 'POST') {
-        return jsonResponse({ token: 'fake-jwt-token', role: 'user' });
+      if (targetUrl.endsWith("/api/auth/login") && init?.method === "POST") {
+        return jsonResponse({ token: "fake-jwt-token", role: "user" });
       }
 
-      if (targetUrl.endsWith('/api/destinations')) {
+      if (targetUrl.endsWith("/api/destinations")) {
         return jsonResponse([]);
       }
 
-      if (targetUrl.endsWith('/api/services')) {
+      if (targetUrl.endsWith("/api/services")) {
         return jsonResponse([]);
       }
 
-      if (targetUrl.endsWith('/api/my-bookings')) {
+      if (targetUrl.endsWith("/api/my-bookings")) {
         return jsonResponse([]);
       }
 
-      if (targetUrl.endsWith('/api/payments') && init?.method === 'POST') {
-        return jsonResponse({ bookingId: 'test-booking', paymentUrl: '/booking-success/test-booking' });
+      if (targetUrl.endsWith("/api/payments") && init?.method === "POST") {
+        return jsonResponse({ bookingId: "test-booking", paymentUrl: "/booking-success/test-booking" });
       }
 
-      if (targetUrl.includes('/api/trips')) {
+      if (targetUrl.includes("/api/trips")) {
         return jsonResponse([]);
       }
 

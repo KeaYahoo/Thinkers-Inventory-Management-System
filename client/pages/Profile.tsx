@@ -1,10 +1,11 @@
 /**
  * Profile Page: lets authenticated users update their name and avatar while reusing cached profile data.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Seo } from "@/components/Seo";
 import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,16 +104,31 @@ export default function Profile() {
 
   const isSaving = isSubmitting || isPending;
 
+  const seoTitle = useMemo(() => {
+    if (user?.full_name) {
+      return `${user.full_name}'s profile`;
+    }
+    if (user?.email) {
+      return `${user.email}'s profile`;
+    }
+    return "Profile settings";
+  }, [user?.email, user?.full_name]);
+
+  const seoDescription = "Manage your Trvlsync profile, update personal details, and refresh your avatar for future trips.";
+
   return (
     <>
+      <Seo title={seoTitle} description={seoDescription} />
       <Header />
-      <main className="pt-32 pb-20 px-6 lg:px-12">
-        <div className="max-w-3xl mx-auto space-y-12">
+      <main className="px-6 pb-20 pt-32 lg:px-12" aria-labelledby="profile-heading">
+        <div className="mx-auto max-w-3xl space-y-12">
           <section className="space-y-6">
             <div className="flex items-start gap-6">
               <Avatar src={avatarPreview} size="lg" />
               <div>
-                <h1 className="text-3xl lg:text-4xl font-light text-gray-900">Profile settings</h1>
+                <h1 id="profile-heading" className="text-3xl font-light text-gray-900 lg:text-4xl">
+                  Profile settings
+                </h1>
                 <p className="text-gray-600">
                   Update your personal details so we can tailor every adventure to you.
                 </p>
@@ -121,11 +137,16 @@ export default function Profile() {
           </section>
 
           <section aria-labelledby="profile-form-title" className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <h2 id="profile-form-title" className="text-xl font-semibold text-gray-900">
+              Personal information
+            </h2>
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-8" aria-describedby="profile-form-help" aria-busy={isSaving}>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" value={user?.email ?? ""} readOnly disabled className="bg-gray-100" />
-                <p className="text-xs text-gray-500">Email addresses are used for bookings and cannot be changed.</p>
+                <Input id="email" value={user?.email ?? ""} readOnly disabled className="bg-gray-100" aria-describedby="email-helper" />
+                <p id="email-helper" className="text-xs text-gray-500">
+                  Email addresses are used for bookings and cannot be changed.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -133,6 +154,7 @@ export default function Profile() {
                 <Input
                   id="full_name"
                   placeholder="Add your name"
+                  autoComplete="name"
                   {...register("full_name")}
                 />
               </div>
@@ -143,8 +165,9 @@ export default function Profile() {
                   id="avatar_url"
                   placeholder="https://example.com/avatar.jpg"
                   {...register("avatar_url")}
+                  aria-describedby="avatar-url-help"
                 />
-                <p className="text-xs text-gray-500">
+                <p id="avatar-url-help" className="text-xs text-gray-500">
                   Paste a publicly accessible image URL. Selecting a file below will update the preview and can be wired to storage later.
                 </p>
               </div>
@@ -156,9 +179,16 @@ export default function Profile() {
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
                   {...register("avatar_file")}
+                  aria-describedby="avatar-upload-help"
                 />
-                <p className="text-xs text-gray-500">Avatar uploads to Supabase Storage will be enabled in a future update.</p>
+                <p id="avatar-upload-help" className="text-xs text-gray-500">
+                  Avatar uploads to Supabase Storage will be enabled in a future update.
+                </p>
               </div>
+
+              <p id="profile-form-help" className="sr-only">
+                Save changes when you are done editing your profile details.
+              </p>
 
               <div className="flex items-center justify-end gap-3">
                 <Button type="submit" disabled={isSaving || isLoading} className="rounded-full">
