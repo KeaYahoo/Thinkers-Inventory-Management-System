@@ -10,8 +10,9 @@ import TripMap from "@/components/TripMap";
 import { Reviews } from "@/components/Reviews";
 import { useTrip } from "@/hooks/useTrip";
 import { useTripAvailability } from "@/hooks/useTripAvailability";
+import { useCreatePayment } from "@/hooks/useCreatePayment";
 import { useAuth } from "@/context/AuthContext";
-import { apiFetch, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -39,6 +40,7 @@ export default function TripDetail() {
     error,
   } = useTrip(id);
   const { data: availability = [], isLoading: isAvailabilityLoading } = useTripAvailability(id);
+  const createPayment = useCreatePayment();
   const [selectedStartDate, setSelectedStartDate] = useState<string | null>(null);
 
   useEffect(() => {
@@ -89,19 +91,10 @@ export default function TripDetail() {
         throw new Error("No start date available for booking");
       }
 
-      const payload = await apiFetch<{ message: string; bookingId?: string }>("/bookings", {
-        method: "POST",
-        token,
-        body: { trip_id: id, start_date: startDateForBooking },
-      });
+      const payload = await createPayment.mutateAsync({ trip_id: id, start_date: startDateForBooking });
 
-      toast.success(payload.message ?? "Trip booked successfully!");
-      const bookingId = typeof payload.bookingId === "string" ? payload.bookingId : null;
-      if (bookingId) {
-        navigate(`/booking-success/${bookingId}`);
-      } else {
-        console.warn("Booking ID missing from response payload");
-      }
+      toast.success("Redirecting to payment...");
+      navigate(payload.paymentUrl);
     } catch (bookingError: unknown) {
       const message =
         bookingError instanceof ApiError
@@ -183,7 +176,7 @@ export default function TripDetail() {
                     >
                       {availability.map((slot) => (
                         <option key={slot.start_date} value={slot.start_date}>
-                          {formatAvailabilityDate(slot.start_date)} · R{slot.price}
+                          {formatAvailabilityDate(slot.start_date)} - R{slot.price}
                         </option>
                       ))}
                     </select>
@@ -199,9 +192,12 @@ export default function TripDetail() {
               <Button
                 type="button"
                 onClick={handleBooking}
-                className="w-full bg-primary-brown text-white transition-colors duration-150 ease-in-out hover:bg-brown-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-brown"
+                disabled={
+                  createPayment.isPending || (!selectedStartDate && availability.length === 0 && !trip.start_date)
+                }
+                className="w-full bg-primary-brown text-white transition-colors duration-150 ease-in-out hover:bg-brown-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-brown disabled:opacity-60"
               >
-                Book Now
+                {createPayment.isPending ? "Processing..." : "Book Now"}
               </Button>
             </aside>
           </div>

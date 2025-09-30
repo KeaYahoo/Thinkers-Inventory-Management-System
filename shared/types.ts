@@ -79,3 +79,9 @@ export interface User {
   avatar_url?: string | null;
   created_at?: string;
 }
+
+export interface PaymentResponse {
+  bookingId: string;
+  paymentUrl: string;
+}
+

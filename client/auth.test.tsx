@@ -142,6 +142,10 @@ describe("authentication flow", () => {
         return jsonResponse([]);
       }
 
+      if (targetUrl.endsWith('/api/payments') && init?.method === 'POST') {
+        return jsonResponse({ bookingId: 'test-booking', paymentUrl: '/booking-success/test-booking' });
+      }
+
       if (targetUrl.includes('/api/trips')) {
         return jsonResponse([]);
       }

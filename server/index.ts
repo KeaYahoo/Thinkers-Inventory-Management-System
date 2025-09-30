@@ -10,6 +10,7 @@ import { handleRegister, handleLogin } from "./routes/auth";
 import { handleGetDestinations } from "./routes/destinations";
 import { handleGetServices } from "./routes/services";
 import { handleGetTrips, handleGetTripById, handleGetTripAvailability } from "./routes/trips";
+import { handleCreatePayment } from "./routes/payments";
 import { authMiddleware } from "./middleware/auth";
 import { handleCreateBooking, handleGetMyBookings } from "./routes/bookings";
 import { handleGetBookingById } from "./routes/booking";
@@ -54,6 +55,7 @@ export function createServer() {
 
   // Protected routes
   app.post("/api/bookings", authMiddleware, handleCreateBooking);
+  app.post("/api/payments", authMiddleware, handleCreatePayment);
   app.get("/api/my-bookings", authMiddleware, handleGetMyBookings);
   app.get("/api/bookings/:bookingId", authMiddleware, handleGetBookingById);
   app.get("/api/users/me", authMiddleware, handleGetCurrentUser);
