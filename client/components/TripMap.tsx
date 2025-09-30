@@ -30,6 +30,14 @@ export default function TripMap({ tripId }: TripMapProps) {
   const { data: locations = [], isLoading, isError } = useLocations(tripId);
   const headingId = useId();
   const descriptionId = useId();
+  const validLocations = useMemo(
+    () =>
+      locations.filter(
+        (location: LocationPoint) =>
+          typeof location.latitude === "number" && typeof location.longitude === "number",
+      ),
+    [locations],
+  );
 
   if (!tripId) {
     return null;
@@ -52,15 +60,6 @@ export default function TripMap({ tripId }: TripMapProps) {
       </section>
     );
   }
-
-  const validLocations = useMemo(
-    () =>
-      locations.filter(
-        (location: LocationPoint) =>
-          typeof location.latitude === "number" && typeof location.longitude === "number",
-      ),
-    [locations],
-  );
 
   if (validLocations.length === 0 || !isClient) {
     return (
@@ -116,5 +115,3 @@ export default function TripMap({ tripId }: TripMapProps) {
     </section>
   );
 }
-
-

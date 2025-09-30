@@ -15,7 +15,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, unstable_HistoryRouter as HistoryRouter } from "react-router-dom";
 import { queryClient as appQueryClient } from "@/lib/queryClient";
 import { createMemoryHistory } from "history";
-import type { History } from "history";
 import { HelmetProvider } from "react-helmet-async";
 
 declare global {
@@ -78,7 +77,7 @@ describe("authentication flow", () => {
           <TooltipProvider>
             <AuthProvider>
               <HistoryRouter
-                history={history as unknown as History}
+                history={history as any}
                 future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
               >
                 <Routes>

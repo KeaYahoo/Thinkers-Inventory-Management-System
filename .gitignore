@@ -44,3 +44,9 @@ dist/
 # OS generated files
 Thumbs.db
 .DS_Store
+
+# Playwright artifacts
+playwright-report/
+test-results/
+blob-report/
+
