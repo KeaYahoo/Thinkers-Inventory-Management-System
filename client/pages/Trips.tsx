@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import type { Trip } from "@shared/types";
 import Header from "@/components/Header";
@@ -7,26 +6,29 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { useTrips } from "@/hooks/useTrips";
+import { useTripFilters, DEFAULT_MAX_PRICE } from "@/hooks/useTripFilters";
 
 export default function Trips() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [price, setPrice] = useState<number[]>([10000]);
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [debouncedPrice, setDebouncedPrice] = useState<number | null>(null);
+  const {
+    searchTerm,
+    setSearchTerm,
+    maxPrice,
+    setMaxPrice,
+    debouncedSearchTerm,
+    debouncedMaxPrice,
+  } = useTripFilters();
 
-  useEffect(() => {
-    const handler = window.setTimeout(() => {
-      setDebouncedSearch(searchTerm.trim());
-      setDebouncedPrice(price[0] < 10000 ? price[0] : null);
-    }, 300);
-
-    return () => window.clearTimeout(handler);
-  }, [searchTerm, price]);
+  const effectiveMaxPrice = maxPrice ?? DEFAULT_MAX_PRICE;
 
   const { data: trips = [], isLoading, isError, error } = useTrips({
-    searchTerm: debouncedSearch || undefined,
-    maxPrice: debouncedPrice,
+    searchTerm: debouncedSearchTerm || undefined,
+    maxPrice: debouncedMaxPrice,
   });
+
+  const handleSliderChange = (value: number[]) => {
+    const nextValue = value[0] ?? DEFAULT_MAX_PRICE;
+    setMaxPrice(nextValue >= DEFAULT_MAX_PRICE ? null : nextValue);
+  };
 
   return (
     <>
@@ -42,18 +44,17 @@ export default function Trips() {
               type="text"
               placeholder="Search by name or location..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(event) => setSearchTerm(event.target.value)}
               className="w-full"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Max Price: R{price[0]}</label>
+            <label className="text-sm font-medium">Max Price: R{effectiveMaxPrice}</label>
             <Slider
-              defaultValue={[10000]}
-              max={10000}
+              max={DEFAULT_MAX_PRICE}
               step={500}
-              value={price}
-              onValueChange={setPrice}
+              value={[effectiveMaxPrice]}
+              onValueChange={handleSliderChange}
             />
           </div>
         </div>
