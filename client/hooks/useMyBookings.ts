@@ -3,6 +3,7 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import { useAuthedApi } from "@/lib/api";
 import type { Booking } from "@shared/types";
 
 export interface PartitionedBookings {
@@ -10,35 +11,16 @@ export interface PartitionedBookings {
   past: Booking[];
 }
 
-async function fetchMyBookings(token: string): Promise<PartitionedBookings> {
-  const response = await fetch("/api/my-bookings", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error("Unauthorized");
-    }
-    throw new Error("Failed to load bookings");
-  }
-
-  return (await response.json()) as PartitionedBookings;
-}
-
 export function useMyBookings() {
-  const { token, isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth();
+  const authedFetch = useAuthedApi();
 
   return useQuery<PartitionedBookings>({
     queryKey: ["bookings", "me"],
-    enabled: Boolean(token && isAuthenticated),
+    enabled: Boolean(isAuthenticated && token),
     queryFn: () => {
-      if (!token) {
-        throw new Error("Missing auth token");
-      }
-      return fetchMyBookings(token);
+      // The authed API helper injects the Bearer token automatically.
+      return authedFetch<PartitionedBookings>("/my-bookings");
     },
     staleTime: 60 * 1000,
   });

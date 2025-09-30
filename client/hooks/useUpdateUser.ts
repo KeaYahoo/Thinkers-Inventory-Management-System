@@ -3,6 +3,7 @@
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import { useAuthedApi } from "@/lib/api";
 import type { UserProfile } from "@/hooks/useUser";
 
 export interface UpdateUserPayload {
@@ -10,46 +11,22 @@ export interface UpdateUserPayload {
   avatar_url?: string | null;
 }
 
-async function updateUserRequest(token: string, payload: UpdateUserPayload): Promise<UserProfile> {
-  const response = await fetch("/api/users/me", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const fallback = "Failed to update profile";
-    let message = fallback;
-    try {
-      const data = (await response.json()) as { message?: string };
-      if (data?.message) message = data.message;
-    } catch {
-      message = fallback;
-    }
-
-    throw new Error(message);
-  }
-
-  return (await response.json()) as UserProfile;
-}
-
 export function useUpdateUser() {
-  const { token, isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth();
   const queryClient = useQueryClient();
+  const authedFetch = useAuthedApi();
 
   return useMutation({
     mutationKey: ["user", "me", "update"],
     mutationFn: async (payload: UpdateUserPayload) => {
-      if (!token || !isAuthenticated) {
+      if (!isAuthenticated || !token) {
         throw new Error("You must be logged in to update your profile.");
       }
-      return updateUserRequest(token, payload);
+      // Use authedFetch to submit the update; the token is inserted automatically.
+      return authedFetch<UserProfile>("/users/me", { method: "PUT", body: payload as Record<string, unknown> });
     },
     onSuccess: () => {
+      // Invalidate cached user profile on success.
       void queryClient.invalidateQueries({ queryKey: ["user", "me"] });
     },
   });

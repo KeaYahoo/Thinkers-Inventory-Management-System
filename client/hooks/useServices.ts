@@ -3,16 +3,14 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import type { Service } from "@shared/types";
+import { apiFetch } from "@/lib/api";
 
 export function useServices() {
   return useQuery<Service[]>({
     queryKey: ["services"],
-    queryFn: async ({ signal }) => {
-      const response = await fetch("/api/services", { signal });
-      if (!response.ok) {
-        throw new Error("Failed to fetch services");
-      }
-      return (await response.json()) as Service[];
+    queryFn: ({ signal }) => {
+      // Use the centralized helper for services.
+      return apiFetch<Service[]>("/services", { signal });
     },
   });
 }

@@ -3,18 +3,14 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import type { Destination } from "@shared/types";
+import { apiFetch } from "@/lib/api";
 
 export function useDestinations() {
   return useQuery<Destination[]>({
     queryKey: ["destinations"],
-    queryFn: async ({ signal }) => {
-      const response = await fetch("/api/destinations", { signal });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch destinations");
-      }
-
-      return (await response.json()) as Destination[];
+    queryFn: ({ signal }) => {
+      // Fetch destinations via the centralized helper.
+      return apiFetch<Destination[]>("/destinations", { signal });
     },
   });
 }
