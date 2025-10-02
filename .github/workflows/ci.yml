@@ -41,6 +41,18 @@ jobs:
         run: pnpm test
 
       - name: Run E2E tests
+        # Supply dummy values so the dev server can boot during Playwright runs.
+        env:
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_ANON_KEY: public-anon-key
+          JWT_SECRET: test-secret
+          ADMIN_EMAIL: testadmin@example.com
+          PAYFAST_MERCHANT_ID: dummy
+          PAYFAST_MERCHANT_KEY: dummy
+          PAYFAST_PASSPHRASE: dummy-passphrase
+          PAYFAST_MODE: sandbox
+          PAYFAST_NOTIFY_URL: http://127.0.0.1:8080/api/payfast/ipn
+          APP_PUBLIC_URL: http://127.0.0.1:8080
         run: pnpm test:e2e
 
       - name: Build
