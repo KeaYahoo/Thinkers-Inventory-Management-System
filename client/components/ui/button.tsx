@@ -2,6 +2,7 @@
  * Button: brand-forward action button with size/variant theming via class-variance-authority.
  */
 import * as React from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -34,16 +35,39 @@ export const buttonVariants = cva(
   },
 );
 
+const MotionButton = motion.button;
+
+type MotionButtonProps = React.ComponentPropsWithoutRef<typeof MotionButton>;
+
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+  extends Omit<MotionButtonProps, "className">,
+    VariantProps<typeof buttonVariants> {
+  className?: string;
+}
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ className, variant, size, whileHover, whileFocus, whileTap, transition, ...props }, ref) => {
+    const prefersReducedMotion = useReducedMotion();
+
+    const hoverAnimation = prefersReducedMotion ? undefined : { scale: 1.05 };
+    const tapAnimation = prefersReducedMotion ? undefined : { scale: 0.95 };
+
     return (
-      <button
+      <MotionButton
         ref={ref}
-        className={cn(buttonVariants({ variant, size }), className)}
+        className={cn(
+          "transition-transform duration-200 will-change-transform",
+          buttonVariants({ variant, size }),
+          className,
+        )}
+        whileHover={hoverAnimation ?? whileHover}
+        whileFocus={hoverAnimation ?? whileFocus}
+        whileTap={tapAnimation ?? whileTap}
+        transition={
+          prefersReducedMotion
+            ? { duration: 0 }
+            : transition ?? { type: "spring", stiffness: 260, damping: 20 }
+        }
         {...props}
       />
     );

@@ -6,6 +6,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
+import { CardHover } from "@/components/ui/cardHover";
+import { AnimatedSection } from "@/components/AnimatedSection";
 import Activities from "@/components/Activities";
 import TripMap from "@/components/TripMap";
 import { Reviews } from "@/components/Reviews";
@@ -71,7 +73,7 @@ export default function TripDetail() {
 
   const displayPrice = selectedAvailability?.price ?? trip?.price ?? 0;
 
-  const seoTitle = trip ? `${trip.name} in ${trip.location}` : "Trip Details";
+  const seoTitle = trip ? `${trip.name} in ${trip.location}` : "Trip details";
   const seoDescription = trip
     ? `Plan your stay at ${trip.name} in ${trip.location}. Discover activities, maps, and traveller reviews.`
     : "Explore curated trip details and availability with Trvlsync.";
@@ -116,103 +118,127 @@ export default function TripDetail() {
   const renderContent = () => {
     if (!id) {
       return (
-        <section className="pt-32 pb-20 text-center">
-          <p className="text-gray-600">Invalid trip identifier.</p>
-        </section>
+        <AnimatedSection className="px-6">
+          <section className="mx-auto max-w-5xl py-24 text-center">
+            <p className="text-gray-600">Invalid trip identifier.</p>
+          </section>
+        </AnimatedSection>
       );
     }
 
     if (isLoading) {
       return (
-        <section className="pt-32 pb-20 text-center">
-          <p className="text-gray-600">Loading trip details...</p>
-        </section>
+        <AnimatedSection className="px-6">
+          <section className="mx-auto max-w-5xl py-24 text-center">
+            <p className="text-gray-600">Loading trip details...</p>
+          </section>
+        </AnimatedSection>
       );
     }
 
     if (isError || !trip) {
       return (
-        <section className="pt-32 pb-20 text-center">
-          <p className="text-red-500">{error instanceof Error ? error.message : "Failed to load trip."}</p>
-        </section>
+        <AnimatedSection className="px-6">
+          <section className="mx-auto max-w-5xl py-24 text-center">
+            <p className="text-red-500">{error instanceof Error ? error.message : "Failed to load trip."}</p>
+          </section>
+        </AnimatedSection>
       );
     }
 
     return (
       <>
-        <section className="relative h-[55vh] min-h-[320px]">
-          <img
-            src={trip.image_url}
-            alt={trip.name}
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/45" aria-hidden="true" />
-          <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
-            <h1 className="text-4xl font-light tracking-wide text-white drop-shadow-lg md:text-6xl">
-              {trip.name}
-            </h1>
-          </div>
-        </section>
+        <AnimatedSection>
+          <section className="relative h-[55vh] min-h-[320px]">
+            <img src={trip.image_url} alt={trip.name} className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-black/45" aria-hidden="true" />
+            <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
+              <h1 className="text-4xl font-light tracking-wide text-white drop-shadow-lg md:text-6xl">
+                {trip.name}
+              </h1>
+            </div>
+          </section>
+        </AnimatedSection>
 
-        <section className="mx-auto max-w-6xl px-6 py-12 md:py-16">
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
-            <article className="space-y-6 md:col-span-2">
+        <AnimatedSection className="mx-auto w-full max-w-6xl px-6 py-12 md:py-16">
+          <section className="grid grid-cols-12 gap-8">
+            <article className="col-span-12 space-y-6 text-left lg:col-span-8">
               <h2 className="text-2xl font-semibold text-velvet-green">About this experience</h2>
               <p className="leading-relaxed text-gray-700">{trip.description}</p>
             </article>
 
-            <aside className="h-fit space-y-6 rounded-2xl border border-border bg-white p-6 shadow-xl">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm uppercase tracking-wide text-gray-500">Investment</p>
-                  <p className="mt-2 text-3xl font-semibold text-primary-brown">R{displayPrice}</p>
-                  <p className="text-sm text-gray-500">per person</p>
+            <aside className="col-span-12 lg:col-span-4">
+              <CardHover className="h-full space-y-6 p-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm uppercase tracking-wide text-gray-500">Investment</p>
+                    <p className="mt-2 text-3xl font-semibold text-primary-brown">R{displayPrice}</p>
+                    <p className="text-sm text-gray-500">per person</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="trip-start-date" className="text-sm font-medium text-gray-700">
+                      Choose your start date
+                    </label>
+                    {isAvailabilityLoading ? (
+                      <p className="text-sm text-gray-500">Checking availability...</p>
+                    ) : availability.length > 0 ? (
+                      <select
+                        id="trip-start-date"
+                        value={selectedStartDate ?? ""}
+                        onChange={(event) => setSelectedStartDate(event.target.value)}
+                        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-brown"
+                      >
+                        {availability.map((slot) => (
+                          <option key={slot.start_date} value={slot.start_date}>
+                            {formatAvailabilityDate(slot.start_date)} - R{slot.price}
+                          </option>
+                        ))}
+                      </select>
+                    ) : trip.start_date ? (
+                      <p className="text-sm text-gray-500">
+                        Next start date: {formatAvailabilityDate(trip.start_date)}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-500">Currently unavailable.</p>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="trip-start-date" className="text-sm font-medium text-gray-700">
-                    Choose your start date
-                  </label>
-                  {isAvailabilityLoading ? (
-                    <p className="text-sm text-gray-500">Checking availability...</p>
-                  ) : availability.length > 0 ? (
-                    <select
-                      id="trip-start-date"
-                      value={selectedStartDate ?? ""}
-                      onChange={(event) => setSelectedStartDate(event.target.value)}
-                      className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-brown"
-                    >
-                      {availability.map((slot) => (
-                        <option key={slot.start_date} value={slot.start_date}>
-                          {formatAvailabilityDate(slot.start_date)} - R{slot.price}
-                        </option>
-                      ))}
-                    </select>
-                  ) : trip.start_date ? (
-                    <p className="text-sm text-gray-500">
-                      Next start date: {formatAvailabilityDate(trip.start_date)}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-500">Currently unavailable.</p>
-                  )}
-                </div>
-              </div>
-              <Button
-                type="button"
-                onClick={handleBooking}
-                disabled={
-                  createPayment.isPending || (!selectedStartDate && availability.length === 0 && !trip.start_date)
-                }
-                className="w-full bg-primary-brown text-white transition-colors duration-150 ease-in-out hover:bg-brown-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-brown disabled:opacity-60"
-              >
-                {createPayment.isPending ? "Processing..." : "Book Now"}
-              </Button>
+                <Button
+                  type="button"
+                  onClick={handleBooking}
+                  disabled={
+                    createPayment.isPending || (!selectedStartDate && availability.length === 0 && !trip.start_date)
+                  }
+                  className="w-full"
+                >
+                  {createPayment.isPending ? "Processing..." : "Book Now"}
+                </Button>
+              </CardHover>
             </aside>
-          </div>
-        </section>
+          </section>
+        </AnimatedSection>
 
-        <Activities tripId={trip.id} />
-        <TripMap tripId={trip.id} />
-        <Reviews tripId={trip.id} />
+        <AnimatedSection className="mx-auto w-full max-w-6xl px-6">
+          <div className="grid grid-cols-12">
+            <div className="col-span-12">
+              <Activities tripId={trip.id} />
+            </div>
+          </div>
+        </AnimatedSection>
+        <AnimatedSection className="mx-auto w-full max-w-6xl px-6">
+          <div className="grid grid-cols-12">
+            <div className="col-span-12">
+              <TripMap tripId={trip.id} />
+            </div>
+          </div>
+        </AnimatedSection>
+        <AnimatedSection className="mx-auto w-full max-w-6xl px-6 pb-16">
+          <div className="grid grid-cols-12">
+            <div className="col-span-12">
+              <Reviews tripId={trip.id} />
+            </div>
+          </div>
+        </AnimatedSection>
       </>
     );
   };

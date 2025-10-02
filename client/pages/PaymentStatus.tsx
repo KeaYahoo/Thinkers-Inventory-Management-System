@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Seo } from "@/components/Seo";
+import { AnimatedSection } from "@/components/AnimatedSection";
 import { useBooking } from "@/hooks/useBooking";
 import { PaymentStatus as PaymentState } from "@shared/types";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -66,30 +67,34 @@ export default function PaymentStatus() {
       <Header />
       <main className="flex-1 bg-white">
         <section className="px-6 pt-32 pb-20">
-          <div className="mx-auto max-w-3xl space-y-6">
-            <div className="space-y-3 text-center">
+          <div className="mx-auto grid w-full max-w-3xl grid-cols-12 gap-8">
+            <AnimatedSection className="col-span-12 space-y-3 text-center">
               <h1 className="text-4xl font-light text-gray-900 lg:text-5xl">{headline}</h1>
               <p className="text-sm uppercase tracking-wide text-gray-500">Status: {STATUS_LABEL[status]}</p>
-            </div>
+            </AnimatedSection>
 
             {bookingQuery.isLoading ? (
+              <AnimatedSection className="col-span-12">
               <div className="rounded-xl border border-border bg-white p-6 text-center shadow-sm">
                 <p className="text-sm text-gray-600">Checking the latest payment details.</p>
               </div>
+            </AnimatedSection>
             ) : bookingQuery.isError ? (
+              <AnimatedSection className="col-span-12">
               <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
                 {bookingQuery.error instanceof Error
                   ? bookingQuery.error.message
                   : "We could not load your booking right now."}
               </div>
+            </AnimatedSection>
             ) : (
-              <div className="space-y-6">
-                <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
+              <AnimatedSection className="col-span-12 space-y-6">
+                  <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
                   <p className="text-base text-gray-700">{STATUS_MESSAGE[status]}</p>
                 </div>
 
                 {bookingQuery.data?.trips && (
-                  <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
+                    <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
                     <h2 className="text-lg font-semibold text-velvet-green">Trip summary</h2>
                     <dl className="mt-3 space-y-2 text-sm text-gray-600">
                       <div className="flex justify-between">
@@ -124,7 +129,7 @@ export default function PaymentStatus() {
                     Explore more trips
                   </Link>
                 </div>
-              </div>
+              </AnimatedSection>
             )}
           </div>
         </section>

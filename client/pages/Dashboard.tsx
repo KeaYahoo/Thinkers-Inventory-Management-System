@@ -3,8 +3,11 @@ import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Seo } from "@/components/Seo";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardHover } from "@/components/ui/cardHover";
 import { Button } from "@/components/ui/button";
+import { AnimatedSection } from "@/components/AnimatedSection";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useUser } from "@/hooks/useUser";
 import { useMyBookings } from "@/hooks/useMyBookings";
@@ -26,7 +29,7 @@ export default function Dashboard() {
   const upcomingBookings = bookingsData?.upcoming ?? [];
   const pastBookings = bookingsData?.past ?? [];
 
-  const heading = !isUserLoading && user?.email ? `Welcome, ${user.email}!` : "My Dashboard";
+  const heading = !isUserLoading && user?.email ? `Welcome, ${user.email}!` : "My dashboard";
   const subheading = isUserLoading
     ? "Loading your profile..."
     : "Track your adventures and manage upcoming trips.";
@@ -52,57 +55,56 @@ export default function Dashboard() {
     if (items.length === 0) {
       if (tab === "upcoming") {
         return (
-          <div className="rounded-lg border px-6 py-16 text-center">
-            <h3 className="mb-4 text-2xl font-medium">No upcoming adventures yet!</h3>
+          <CardHover className="rounded-2xl border border-dashed border-velvet-green/40 bg-white p-8 text-center">
+            <h3 className="mb-4 text-2xl font-semibold text-velvet-green">No upcoming adventures yet!</h3>
             <p className="mb-6 text-gray-600">
               Ready for your next escape? Discover curated getaways tailored for you.
             </p>
             <Link to="/trips">
-              <Button className="bg-primary-brown hover:bg-brown-dark">Explore trips</Button>
+              <Button className="rounded-full">Explore trips</Button>
             </Link>
-          </div>
+          </CardHover>
         );
       }
 
       return (
-        <div className="rounded-lg border px-6 py-16 text-center text-gray-600">
-          <h3 className="mb-4 text-2xl font-medium">No past trips yet.</h3>
+        <CardHover className="rounded-2xl border border-dashed border-primary-brown/30 bg-white p-8 text-center text-gray-600">
+          <h3 className="mb-4 text-2xl font-semibold text-primary-brown">No past trips yet.</h3>
           <p>Book your first adventure to start building unforgettable memories.</p>
-        </div>
+        </CardHover>
       );
     }
 
     return (
       <div className="space-y-8">
-        {items.map((booking) => {
+        {items.map((booking, index) => {
           const tripStartLabel = booking.trips.start_date
             ? new Date(booking.trips.start_date).toLocaleDateString()
             : "Date to be announced";
           const bookedOnLabel = new Date(booking.created_at).toLocaleDateString();
 
           return (
-            <article
-              key={booking.id}
-              className="focus-within:ring-primary-brown focus-within:ring-offset-2"
-            >
-              <Card className="flex flex-col items-center overflow-hidden md:flex-row">
-                <img
-                  src={booking.trips.image_url}
-                  alt={booking.trips.name}
-                  className="h-64 w-full object-cover md:h-full md:w-1/3"
-                />
-                <div className="flex-1">
-                  <CardHeader>
-                    <CardTitle>{booking.trips.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <p className="text-gray-600">{booking.trips.location}</p>
-                    <p className="text-sm text-gray-500">Trip starts: {tripStartLabel}</p>
-                    <p className="text-sm text-gray-500">Booked on: {bookedOnLabel}</p>
-                  </CardContent>
-                </div>
-              </Card>
-            </article>
+            <AnimatedSection delay={0.1 + index * 0.08} key={booking.id} className="grid grid-cols-12">
+              <article className="col-span-12 focus-within:ring-primary-brown focus-within:ring-offset-2">
+                <CardHover className="grid grid-cols-12 overflow-hidden">
+                  <img
+                    src={booking.trips.image_url}
+                    alt={booking.trips.name}
+                    className="col-span-12 h-56 w-full object-cover md:col-span-4 md:h-full"
+                  />
+                  <div className="col-span-12 md:col-span-8">
+                    <CardHeader>
+                      <CardTitle>{booking.trips.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">{booking.trips.location}</p>
+                      <p className="text-sm text-gray-500">Trip starts: {tripStartLabel}</p>
+                      <p className="text-sm text-gray-500">Booked on: {bookedOnLabel}</p>
+                    </CardContent>
+                  </div>
+                </CardHover>
+              </article>
+            </AnimatedSection>
           );
         })}
       </div>
@@ -118,60 +120,64 @@ export default function Dashboard() {
     <>
       <Seo title={seoTitle} description={seoDescription} />
       <Header />
-      <main className="px-6 pb-20 pt-32 lg:px-12" aria-labelledby="dashboard-heading">
-        <div className="mx-auto flex max-w-7xl flex-col gap-12">
-          <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 id="dashboard-heading" className="text-4xl font-light text-gray-900 lg:text-5xl">
-                {heading}
-              </h1>
-              <p className="text-gray-600">{subheading}</p>
-            </div>
-            <Button
-              onClick={logout}
-              type="button"
-              variant="outline"
-              className="self-start rounded-full md:self-auto"
-            >
-              Log out
-            </Button>
-          </header>
+      <main className="flex-1 bg-white px-6 pb-20 pt-32 lg:px-12" aria-labelledby="dashboard-heading">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-12 gap-8">
+          <AnimatedSection className="col-span-12">
+            <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-2">
+                <h1 id="dashboard-heading" className="text-4xl font-light text-gray-900 lg:text-5xl">
+                  {heading}
+                </h1>
+                <p className="text-gray-600">{subheading}</p>
+              </div>
+              <Button
+                onClick={logout}
+                type="button"
+                variant="outline"
+                className="self-start rounded-full md:self-auto"
+              >
+                Log out
+              </Button>
+            </header>
+          </AnimatedSection>
 
-          <section aria-labelledby="bookings-heading" className="space-y-6">
-            <div>
-              <h2 id="bookings-heading" className="text-2xl font-semibold text-gray-900">
-                Your bookings
-              </h2>
-              <p className="text-gray-600">
-                All your adventures neatly organised by what\'s ahead and what\'s behind.
-              </p>
-            </div>
-
-            <div
-              role="tablist"
-              aria-label="Bookings categories"
-              className="inline-flex rounded-full border border-gray-200 bg-white p-1 shadow-sm"
-            >
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab.id;
-                return (
-                  <Button
-                    key={tab.id}
-                    id={`tab-${tab.id}`}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    aria-controls={`${tab.id}-panel`}
-                    onClick={() => setActiveTab(tab.id)}
-                    variant={isActive ? "secondary" : "ghost"}
-                    className={`rounded-full px-5 py-2 text-sm font-medium transition-colors focus-visible:ring-primary-brown focus-visible:ring-offset-2 ${
-                      isActive ? "text-white shadow" : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    {tab.label}
-                  </Button>
-                );
-              })}
+          <AnimatedSection className="col-span-12 space-y-6" aria-labelledby="bookings-heading">
+            <div className="grid grid-cols-12 items-end gap-4">
+              <div className="col-span-12 md:col-span-8">
+                <h2 id="bookings-heading" className="text-2xl font-semibold text-gray-900">
+                  Your bookings
+                </h2>
+                <p className="text-gray-600">
+                  All your adventures neatly organised by what's ahead and what's behind.
+                </p>
+              </div>
+              <div
+                role="tablist"
+                aria-label="Bookings categories"
+                className="col-span-12 inline-flex rounded-full border border-gray-200 bg-white p-1 shadow-sm md:col-span-4 md:justify-end"
+              >
+                {tabs.map((tab) => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <Button
+                      key={tab.id}
+                      id={`tab-${tab.id}`}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      aria-controls={`${tab.id}-panel`}
+                      onClick={() => setActiveTab(tab.id)}
+                      variant={isActive ? "secondary" : "ghost"}
+                      className={cn(
+                        "rounded-full px-5 py-2 text-sm font-medium",
+                        isActive ? "text-white" : "text-gray-600 hover:text-gray-900",
+                      )}
+                    >
+                      {tab.label}
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
 
             <div
@@ -183,7 +189,7 @@ export default function Dashboard() {
               {isBookingsLoading ? (
                 <p className="text-gray-600">Loading your bookings...</p>
               ) : isBookingsError ? (
-                <div className="rounded-lg border border-red-100 bg-red-50 p-6 text-red-700">
+                <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">
                   {errorMessage}
                 </div>
               ) : activeTab === "upcoming" ? (
@@ -192,7 +198,7 @@ export default function Dashboard() {
                 renderBookingsList(pastBookings, "past")
               )}
             </div>
-          </section>
+          </AnimatedSection>
         </div>
       </main>
       <Footer />
