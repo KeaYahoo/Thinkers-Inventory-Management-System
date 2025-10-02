@@ -8,6 +8,7 @@ import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { CardHover } from "@/components/ui/cardHover";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { Select } from "@/components/ui/select";
 import Activities from "@/components/Activities";
 import TripMap from "@/components/TripMap";
 import { Reviews } from "@/components/Reviews";
@@ -119,7 +120,7 @@ export default function TripDetail() {
     if (!id) {
       return (
         <AnimatedSection className="px-6">
-          <section className="mx-auto max-w-5xl py-24 text-center">
+          <section className="mx-auto max-w-6xl py-24 text-center">
             <p className="text-gray-600">Invalid trip identifier.</p>
           </section>
         </AnimatedSection>
@@ -128,19 +129,37 @@ export default function TripDetail() {
 
     if (isLoading) {
       return (
-        <AnimatedSection className="px-6">
-          <section className="mx-auto max-w-5xl py-24 text-center">
-            <p className="text-gray-600">Loading trip details...</p>
-          </section>
+        <AnimatedSection className="mx-auto w-full max-w-6xl px-6 py-16">
+          <div className="grid grid-cols-12 gap-8">
+            <div className="col-span-12">
+              <div className="h-64 w-full rounded-2xl bg-muted animate-pulse" aria-hidden="true" />
+            </div>
+            <div className="col-span-12 space-y-4 lg:col-span-8">
+              <div className="h-6 w-1/2 rounded bg-muted animate-pulse" aria-hidden="true" />
+              <div className="space-y-3 rounded-2xl border border-border bg-white p-6 shadow-sm">
+                <div className="h-5 w-2/3 rounded bg-muted animate-pulse" aria-hidden="true" />
+                <div className="h-4 w-full rounded bg-muted animate-pulse" aria-hidden="true" />
+                <div className="h-4 w-5/6 rounded bg-muted animate-pulse" aria-hidden="true" />
+              </div>
+            </div>
+            <div className="col-span-12 lg:col-span-4">
+              <div className="space-y-4 rounded-2xl border border-border bg-white p-6 shadow-sm">
+                <div className="h-4 w-1/3 rounded bg-muted animate-pulse" aria-hidden="true" />
+                <div className="h-8 w-2/3 rounded bg-muted animate-pulse" aria-hidden="true" />
+                <div className="h-4 w-1/2 rounded bg-muted animate-pulse" aria-hidden="true" />
+                <div className="h-10 w-full rounded bg-muted animate-pulse" aria-hidden="true" />
+              </div>
+            </div>
+          </div>
         </AnimatedSection>
       );
     }
 
     if (isError || !trip) {
       return (
-        <AnimatedSection className="px-6">
-          <section className="mx-auto max-w-5xl py-24 text-center">
-            <p className="text-red-500">{error instanceof Error ? error.message : "Failed to load trip."}</p>
+        <AnimatedSection className="mx-auto w-full max-w-6xl px-6 py-16">
+          <section className="rounded-2xl border border-red-100 bg-red-50 p-8 text-center text-red-600 shadow-sm" role="alert">
+            <p>{error instanceof Error ? error.message : "Failed to load trip."}</p>
           </section>
         </AnimatedSection>
       );
@@ -182,18 +201,17 @@ export default function TripDetail() {
                     {isAvailabilityLoading ? (
                       <p className="text-sm text-gray-500">Checking availability...</p>
                     ) : availability.length > 0 ? (
-                      <select
+                      <Select
                         id="trip-start-date"
                         value={selectedStartDate ?? ""}
                         onChange={(event) => setSelectedStartDate(event.target.value)}
-                        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-brown"
                       >
                         {availability.map((slot) => (
                           <option key={slot.start_date} value={slot.start_date}>
                             {formatAvailabilityDate(slot.start_date)} - R{slot.price}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     ) : trip.start_date ? (
                       <p className="text-sm text-gray-500">
                         Next start date: {formatAvailabilityDate(trip.start_date)}

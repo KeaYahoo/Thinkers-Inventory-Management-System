@@ -121,7 +121,7 @@ export default function Dashboard() {
       <Seo title={seoTitle} description={seoDescription} />
       <Header />
       <main className="flex-1 bg-white px-6 pb-20 pt-32 lg:px-12" aria-labelledby="dashboard-heading">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-12 gap-8">
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-12 gap-8">
           <AnimatedSection className="col-span-12">
             <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
               <div className="space-y-2">
