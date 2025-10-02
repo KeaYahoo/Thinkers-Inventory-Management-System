@@ -25,7 +25,8 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        # Use --no-frozen-lockfile because pnpm-lock.yaml is not committed.
+        run: pnpm install --no-frozen-lockfile
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
