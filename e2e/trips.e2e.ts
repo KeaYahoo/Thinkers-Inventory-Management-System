@@ -26,12 +26,18 @@ test.describe("Trip discovery and booking", () => {
     await page.goto("/trips/trip-2");
     await page.waitForLoadState("networkidle");
 
+    const paymentResponsePromise = page.waitForResponse((response) =>
+      response.url().endsWith("/api/payments") && response.request().method() === "POST" && response.status() === 201,
+    );
+
     const bookNowButton = page.getByRole("button", { name: /book now/i }).first();
     await bookNowButton.waitFor({ state: "visible" });
     await expect(bookNowButton).toBeEnabled();
     await bookNowButton.click();
 
-    await page.waitForURL("**/payment/checkout/booking-checkout-1");
-    await expect(page).toHaveURL(/payment\/checkout\/booking-checkout-1$/);
+    const paymentResponse = await paymentResponsePromise;
+    const paymentPayload = (await paymentResponse.json()) as { bookingId: string; paymentUrl: string };
+    expect(paymentPayload.paymentUrl).toContain("sandbox.payfast.co.za/eng/process");
+    expect(paymentPayload.bookingId).toBeTruthy();
   });
 });

@@ -4,7 +4,7 @@
 import type { RequestHandler } from "express";
 import { supabase } from "../lib/supabaseClient";
 
-const BOOKING_COLUMNS = "id, user_id, trip_id, created_at";
+const BOOKING_COLUMNS = "id, user_id, trip_id, created_at, payment_status, payment_provider, payment_metadata, start_date";
 const TRIP_COLUMNS = "id, name, location, description, price, image_url, start_date, created_at, latitude, longitude";
 
 export const handleGetBookingById: RequestHandler = async (req, res) => {

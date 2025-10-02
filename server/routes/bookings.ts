@@ -2,10 +2,10 @@
  * Booking Routes: restrict selects and partition a user\'s bookings into upcoming and past collections for the dashboard.
  */
 import type { RequestHandler } from "express";
-import type { Booking } from "@shared/types";
+import type { Booking } from "../../shared/types";
 import { supabase } from "../lib/supabaseClient";
 
-const BOOKING_COLUMNS = "id, user_id, trip_id, created_at";
+const BOOKING_COLUMNS = "id, user_id, trip_id, created_at, payment_status, payment_provider, payment_metadata, start_date";
 const TRIP_COLUMNS = "id, name, location, description, price, image_url, start_date, created_at";
 
 export const handleCreateBooking: RequestHandler = async (req, res) => {
@@ -18,7 +18,7 @@ export const handleCreateBooking: RequestHandler = async (req, res) => {
 
     const { data, error } = await supabase
       .from("bookings")
-      .insert({ user_id: userId, trip_id })
+      .insert({ user_id: userId, trip_id, payment_status: "pending" })
       .select("id")
       .single();
 

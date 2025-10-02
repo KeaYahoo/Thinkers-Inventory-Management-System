@@ -41,10 +41,20 @@ const decodeToken = (token: string): JwtPayload => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [authState, setAuthState] = useState<AuthState>({
-    token: null,
-    role: null,
-    userId: null,
+  const [authState, setAuthState] = useState<AuthState>(() => {
+    if (typeof window === "undefined") {
+      return { token: null, role: null, userId: null };
+    }
+    const storedToken = localStorage.getItem("trvlsync_token");
+    if (!storedToken) {
+      return { token: null, role: null, userId: null };
+    }
+    const decoded = decodeToken(storedToken);
+    return {
+      token: storedToken,
+      role: (decoded.role as UserRole) ?? null,
+      userId: decoded.userId ?? null,
+    };
   });
 
   useEffect(() => {

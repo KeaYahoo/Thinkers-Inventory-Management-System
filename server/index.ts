@@ -11,6 +11,7 @@ import { handleGetDestinations } from "./routes/destinations";
 import { handleGetServices } from "./routes/services";
 import { handleGetTrips, handleGetTripById, handleGetTripAvailability } from "./routes/trips";
 import { handleCreatePayment } from "./routes/payments";
+import { handlePayfastIPN } from "./routes/payfast";
 import { authMiddleware, adminMiddleware } from "./middleware/auth";
 import { handleCreateBooking, handleGetMyBookings } from "./routes/bookings";
 import { handleGetBookingById } from "./routes/booking";
@@ -57,6 +58,7 @@ export function createServer() {
   // Protected routes
   app.post("/api/bookings", authMiddleware, handleCreateBooking);
   app.post("/api/payments", authMiddleware, handleCreatePayment);
+  app.post("/api/payfast/ipn", handlePayfastIPN);
   app.get("/api/admin/reviews/pending", authMiddleware, adminMiddleware, handleGetPendingReviews);
   app.post("/api/admin/reviews/:reviewId/approve", authMiddleware, adminMiddleware, handleApproveReview);
   app.delete("/api/admin/reviews/:reviewId", authMiddleware, adminMiddleware, handleDeleteReview);

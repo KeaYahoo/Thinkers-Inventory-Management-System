@@ -21,6 +21,7 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import BookingConfirmation from "./pages/BookingConfirmation";
+import PaymentStatus from "./pages/PaymentStatus";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
@@ -48,6 +49,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <BookingConfirmation />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment-status/:bookingId"
+                element={
+                  <ProtectedRoute>
+                    <PaymentStatus />
                   </ProtectedRoute>
                 }
               />

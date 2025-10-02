@@ -44,11 +44,25 @@ export interface TripAvailability {
   price: number;
 }
 
+export enum PaymentStatus {
+  Pending = "pending",
+  Paid = "paid",
+  Failed = "failed",
+}
+
+export enum PaymentProvider {
+  PayFast = "payfast",
+}
+
 export interface Booking {
   id: string;
   user_id: string;
   trip_id: string;
   created_at: string;
+  payment_status: PaymentStatus;
+  payment_provider?: PaymentProvider | null;
+  payment_metadata?: Record<string, unknown> | null;
+  start_date?: string | null;
   trips: Trip;
 }
 

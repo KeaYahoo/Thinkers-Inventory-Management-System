@@ -8,6 +8,7 @@ import type {
   Trip,
   TripAvailability,
 } from "@shared/types";
+import { PaymentProvider, PaymentStatus } from "@shared/types";
 
 type PartitionedBookings = {
   upcoming: Booking[];
@@ -27,6 +28,7 @@ type MockData = {
   tripReviews: ReviewCollection;
   bookings: PartitionedBookings;
   pendingReviews: ReviewWithUser[];
+  bookingIndex: Record<string, Booking>;
 };
 
 const tripOne: Trip = {
@@ -55,6 +57,22 @@ const tripTwo: Trip = {
   longitude: 23.0471,
 };
 
+const defaultBooking: Booking = {
+  id: "booking-1",
+  user_id: "user-1",
+  trip_id: "trip-1",
+  created_at: "2025-01-15T00:00:00.000Z",
+  payment_status: PaymentStatus.Paid,
+  payment_provider: PaymentProvider.PayFast,
+  payment_metadata: {
+    provider: PaymentProvider.PayFast,
+    amount: tripOne.price,
+    currency: "ZAR",
+    processed_at: "2025-01-15T00:00:00.000Z",
+  },
+  start_date: tripOne.start_date,
+  trips: tripOne,
+};
 const defaultData: MockData = {
   destinations: [
     {
@@ -136,15 +154,7 @@ const defaultData: MockData = {
     ],
   },
   bookings: {
-    upcoming: [
-      {
-        id: "booking-1",
-        user_id: "user-1",
-        trip_id: "trip-1",
-        created_at: "2025-01-15T00:00:00.000Z",
-        trips: tripOne,
-      },
-    ],
+    upcoming: [defaultBooking],
     past: [],
   },
   pendingReviews: [
@@ -167,6 +177,9 @@ const defaultData: MockData = {
       user: { id: "user-4", email: "traveler.two@example.com" },
     },
   ],
+  bookingIndex: {
+    [defaultBooking.id]: defaultBooking,
+  },
 };
 
 function cloneData(data: MockData): MockData {
@@ -221,9 +234,43 @@ function jsonResponse(route: import("@playwright/test").Route, body: unknown, st
 
 export async function setupDefaultMocks(page: Page, overrides?: Partial<MockData>) {
   const data = cloneData(defaultData);
+  const indexedBookings = [...data.bookings.upcoming, ...data.bookings.past];
+  data.bookingIndex = {};
+  indexedBookings.forEach((booking) => {
+    data.bookingIndex[booking.id] = booking;
+  });
   if (overrides) {
     mergeData(data, overrides);
   }
+  const mergedBookings = [...data.bookings.upcoming, ...data.bookings.past];
+  data.bookingIndex = {};
+  mergedBookings.forEach((booking) => {
+    data.bookingIndex[booking.id] = booking;
+  });
+
+  const mapPayfastStatus = (value?: string | null): PaymentStatus => {
+    const normalised = (value ?? "").toUpperCase();
+    if (normalised === "COMPLETE") {
+      return PaymentStatus.Paid;
+    }
+    if (normalised === "FAILED" || normalised === "CANCELLED") {
+      return PaymentStatus.Failed;
+    }
+    return PaymentStatus.Pending;
+  };
+
+  const upsertBooking = (booking: Booking, group: "upcoming" | "past" = "upcoming") => {
+    const target = data.bookings[group];
+    const existingIndex = target.findIndex((entry) => entry.id === booking.id);
+    if (existingIndex >= 0) {
+      target[existingIndex] = booking;
+    } else {
+      target.push(booking);
+    }
+    const otherGroup = group === "upcoming" ? "past" : "upcoming";
+    data.bookings[otherGroup] = data.bookings[otherGroup].filter((entry) => entry.id !== booking.id);
+    data.bookingIndex[booking.id] = booking;
+  };
 
   await page.route("**/api/**", async (route) => {
     const request = route.request();
@@ -332,16 +379,68 @@ export async function setupDefaultMocks(page: Page, overrides?: Partial<MockData
       return respondJSON({ id, email, full_name: null, avatar_url: null });
     }
 
+    const bookingMatch = pathname.match(/^\/api\/bookings\/(.+)$/);
+    if (bookingMatch && method === "GET") {
+      const bookingId = bookingMatch[1];
+      const booking = data.bookingIndex[bookingId];
+      if (!booking) {
+        return respondJSON({ message: "Booking not found" }, 404);
+      }
+      return respondJSON(booking);
+    }
+
     if (method === "GET" && pathname === "/api/my-bookings") {
       return respondJSON(data.bookings);
     }
 
     if (method === "POST" && pathname === "/api/payments") {
-      const response = {
-        bookingId: "booking-checkout-1",
-        paymentUrl: "/payment/checkout/booking-checkout-1",
+      const payload = request.postDataJSON() as { trip_id?: string; start_date?: string };
+      const tripId = payload.trip_id ?? data.trips[0]?.id ?? "trip-1";
+      const trip = data.trips.find((item) => item.id === tripId) ?? data.trips[0];
+      const amount = trip?.price ?? 0;
+      const bookingId = `booking-${Date.now()}`;
+      const userId = String(claims.userId ?? "user-1");
+      const newBooking: Booking = {
+        id: bookingId,
+        user_id: userId,
+        trip_id: trip?.id ?? tripId,
+        created_at: new Date().toISOString(),
+        payment_status: PaymentStatus.Pending,
+        payment_provider: PaymentProvider.PayFast,
+        payment_metadata: {
+          provider: PaymentProvider.PayFast,
+          amount,
+          currency: "ZAR",
+        },
+        start_date: payload.start_date ?? trip?.start_date ?? null,
+        trips: trip ?? data.trips[0],
       };
-      return respondJSON(response, 201);
+      upsertBooking(newBooking, "upcoming");
+
+      const paymentUrl = `https://sandbox.payfast.co.za/eng/process?m_payment_id=${bookingId}`;
+
+      return respondJSON({ bookingId, paymentUrl }, 201);
+    }
+
+    if (method === "POST" && pathname === "/api/payfast/ipn") {
+      const rawBody = request.postData() ?? "";
+      const params = new URLSearchParams(rawBody);
+      const bookingId = params.get("m_payment_id");
+      if (!bookingId) {
+        return respondJSON({ message: "Missing booking reference" }, 400);
+      }
+      const booking = data.bookingIndex[bookingId];
+      if (!booking) {
+        return respondJSON({ message: "Booking not found" }, 404);
+      }
+      booking.payment_status = mapPayfastStatus(params.get("payment_status"));
+      booking.payment_metadata = {
+        ...(booking.payment_metadata ?? {}),
+        payment_status: params.get("payment_status"),
+        pf_payment_id: params.get("pf_payment_id"),
+      };
+      upsertBooking(booking, "upcoming");
+      return respondJSON({ message: "Acknowledged" });
     }
 
     if (method === "GET" && pathname === "/api/admin/reviews/pending") {
