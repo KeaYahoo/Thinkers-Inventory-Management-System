@@ -1,9 +1,13 @@
 import js from "@eslint/js";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 import { FlatCompat } from "@eslint/eslintrc";
 import tseslint from "typescript-eslint";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
+  baseDirectory: __dirname,
   recommendedConfig: js.configs.recommended,
   allConfig: js.configs.all,
 });
