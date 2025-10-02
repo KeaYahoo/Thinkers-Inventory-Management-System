@@ -2,6 +2,7 @@
  * Star Rating: renders filled/outline stars with optional interactive controls for keyboard and pointer users.
  */
 import { useCallback } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { StarIcon as SolidStarIcon } from "@heroicons/react/24/solid";
 import { StarIcon as OutlineStarIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,8 @@ export type StarRatingProps = {
   ariaLabelledBy?: string;
 } & (InteractiveProps | ReadOnlyProps);
 
+const MotionSpan = motion.span;
+
 export function StarRating({
   rating,
   outOf = 5,
@@ -43,6 +46,7 @@ export function StarRating({
 }: StarRatingProps) {
   const stars = Array.from({ length: outOf }, (_, index) => index + 1);
   const isInteractive = "onChange" in rest && typeof rest.onChange === "function" && !rest.readOnly;
+  const prefersReducedMotion = useReducedMotion();
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -59,6 +63,12 @@ export function StarRating({
     },
     [isInteractive, rest, outOf],
   );
+
+  const hoverAnimation = prefersReducedMotion ? undefined : { scale: 1.15 };
+  const tapAnimation = prefersReducedMotion ? undefined : { scale: 1.3 };
+  const activeAnimate = prefersReducedMotion ? { scale: 1 } : { scale: 1.05 };
+  const inactiveAnimate = { scale: 1 };
+  const transition = prefersReducedMotion ? undefined : { type: "spring" as const, stiffness: 320, damping: 20, mass: 0.5 };
 
   return (
     <div
@@ -89,18 +99,40 @@ export function StarRating({
                 onClick={() => rest.onChange(value)}
                 variant="ghost"
                 size="icon"
-                className={cn(
-                  "h-8 w-8 p-0 transition-colors duration-150 ease-in-out focus-visible:ring-primary-brown",
-                  filled ? "text-primary-brown" : "text-gray-300 hover:text-primary-brown",
-                )}
+                className="group h-8 w-8 p-0 focus-visible:ring-primary-brown"
               >
-                <Icon className={sizeMap[size]} aria-hidden />
+                <MotionSpan
+                  initial={false}
+                  animate={filled ? activeAnimate : inactiveAnimate}
+                  transition={transition}
+                  whileHover={hoverAnimation}
+                  whileTap={tapAnimation}
+                  className={cn(
+                    sizeMap[size],
+                    "transition-colors duration-150",
+                    filled
+                      ? "text-primary-brown"
+                      : "text-gray-300 group-hover:text-primary-brown group-focus-visible:text-primary-brown",
+                  )}
+                >
+                  <Icon aria-hidden />
+                </MotionSpan>
                 <span className="sr-only">{value} Star</span>
               </Button>
             );
           }
 
-          return <Icon key={value} className={`${sizeMap[size]} text-primary-brown`} aria-hidden />;
+          return (
+            <MotionSpan
+              key={value}
+              initial={false}
+              animate={filled ? activeAnimate : inactiveAnimate}
+              transition={transition}
+              className={cn(sizeMap[size], filled ? "text-primary-brown" : "text-gray-300")}
+            >
+              <Icon aria-hidden />
+            </MotionSpan>
+          );
         })}
       </div>
     </div>

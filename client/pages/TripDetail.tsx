@@ -8,6 +8,7 @@ import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { CardHover } from "@/components/ui/cardHover";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { BackToTop } from "@/components/BackToTop";
 import { Select } from "@/components/ui/select";
 import Activities from "@/components/Activities";
 import TripMap from "@/components/TripMap";
@@ -266,6 +267,7 @@ export default function TripDetail() {
       <Seo title={seoTitle} description={seoDescription} image={seoImage} />
       <Header />
       <main className="bg-white">{renderContent()}</main>
+      <BackToTop />
       <Footer />
     </>
   );

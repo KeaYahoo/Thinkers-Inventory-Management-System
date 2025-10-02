@@ -7,6 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { BackToTop } from "@/components/BackToTop";
 import { useTrips } from "@/hooks/useTrips";
 import { useTripFilters, DEFAULT_MAX_PRICE } from "@/hooks/useTripFilters";
 
@@ -41,7 +42,7 @@ export default function Trips() {
       <Header />
       <main className="pt-32 pb-20" aria-labelledby="trips-heading">
         <section className="px-6 lg:px-12">
-          <div className="mx-auto max-w-7xl text-center">
+          <div className="mx-auto max-w-6xl text-center">
             <h1 id="trips-heading" className="text-4xl font-light text-gray-900 lg:text-5xl">
               Available Trips
             </h1>
@@ -52,7 +53,7 @@ export default function Trips() {
         </section>
 
         <section className="px-6 lg:px-12" aria-labelledby="trip-filters-heading">
-          <div className="mx-auto mt-12 max-w-7xl rounded-lg border bg-white p-6 shadow-sm">
+          <div className="mx-auto mt-12 max-w-6xl rounded-lg border bg-white p-6 shadow-sm">
             <h2 id="trip-filters-heading" className="sr-only">
               Trip filters
             </h2>
@@ -87,7 +88,7 @@ export default function Trips() {
         </section>
 
         <section className="px-6 lg:px-12" aria-live="polite" aria-busy={isLoading}>
-          <div className="mx-auto mt-12 max-w-7xl">
+          <div className="mx-auto mt-12 max-w-6xl">
             {isLoading ? (
               <p className="text-center text-gray-600">Loading trips...</p>
             ) : isError ? (
@@ -130,6 +131,7 @@ export default function Trips() {
           </div>
         </section>
       </main>
+      <BackToTop />
       <Footer />
     </>
   );

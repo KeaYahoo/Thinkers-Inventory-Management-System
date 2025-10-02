@@ -7,6 +7,7 @@ import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CardHover } from "@/components/ui/cardHover";
 import { Button } from "@/components/ui/button";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { BackToTop } from "@/components/BackToTop";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useUser } from "@/hooks/useUser";
@@ -201,6 +202,7 @@ export default function Dashboard() {
           </AnimatedSection>
         </div>
       </main>
+      <BackToTop />
       <Footer />
     </>
   );

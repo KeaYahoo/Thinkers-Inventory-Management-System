@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Seo } from "@/components/Seo";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { BackToTop } from "@/components/BackToTop";
 import { CardHover } from "@/components/ui/cardHover";
 import { useBooking } from "@/hooks/useBooking";
 import { PaymentStatus as PaymentState } from "@shared/types";
@@ -138,6 +139,7 @@ export default function PaymentStatus() {
           </div>
         </section>
       </main>
+      <BackToTop />
       <Footer />
     </div>
   );

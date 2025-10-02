@@ -5,6 +5,7 @@ import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CardHover } from "@/components/ui/cardHover";
 import { Button } from "@/components/ui/button";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { BackToTop } from "@/components/BackToTop";
 import { usePendingReviews } from "@/hooks/usePendingReviews";
 import { useApproveReview } from "@/hooks/useApproveReview";
 import { useDeleteReview } from "@/hooks/useDeleteReview";
@@ -114,6 +115,7 @@ export default function AdminDashboard() {
           </AnimatedSection>
         </div>
       </main>
+      <BackToTop />
       <Footer />
     </>
   );
