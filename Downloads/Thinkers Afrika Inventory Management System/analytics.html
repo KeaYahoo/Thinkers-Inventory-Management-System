@@ -1,0 +1,831 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics & Reporting - TIMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.8.0/recharts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="theme.css">
+    <style>
+        .chart-container {
+            transition: all 0.3s ease;
+        }
+        
+        .chart-container:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-soft);
+        }
+        
+        .metric-card {
+            transition: all 0.24s ease-out;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-soft);
+        }
+        
+        .filter-chip {
+            transition: all 0.2s ease;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        
+        .filter-chip.active {
+            background: var(--accent-primary);
+            color: #fff;
+            border-color: var(--accent-primary);
+        }
+        
+        .filter-chip:hover {
+            transform: scale(1.05);
+        }
+        
+        .export-btn {
+            transition: all 0.24s ease-out;
+        }
+        
+        .export-btn:hover {
+            transform: scale(1.03);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .trend-up {
+            color: var(--status-healthy);
+        }
+        
+        .trend-down {
+            color: var(--status-critical);
+        }
+        
+        .trend-neutral {
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body class="theme-neutral overflow-x-hidden">
+    <!-- Navigation -->
+    <nav class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-8">
+                <div class="flex items-center space-x-3">
+                    <div class="brand-mark w-8 h-8 rounded-lg flex items-center justify-center">
+                        <span class="font-bold text-sm">T</span>
+                    </div>
+                    <span class="text-primary font-semibold text-lg">TIMS</span>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="nav-link px-3 py-2 text-sm font-medium">Dashboard</a>
+                    <a href="stock-management.html" class="nav-link px-3 py-2 text-sm font-medium">Stock</a>
+                    <a href="consumption.html" class="nav-link px-3 py-2 text-sm font-medium">Consumption</a>
+                    <a href="analytics.html" class="nav-link active px-3 py-2 text-sm font-medium">Analytics</a>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button onclick="openReportModal()" class="bg-cyan-500 hover:bg-cyan-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Generate Report
+                </button>
+                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section class="hero-bg pt-24 pb-8">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-primary mb-2">Analytics & Reporting</h1>
+                    <p class="text-secondary">Comprehensive insights into inventory performance and trends</p>
+                </div>
+                <div class="flex space-x-4">
+                    <div class="flex space-x-2">
+                        <button class="filter-chip active px-4 py-2 rounded-lg text-sm font-medium" data-period="7d">7 Days</button>
+                        <button class="filter-chip px-4 py-2 rounded-lg text-sm font-medium" data-period="30d">30 Days</button>
+                        <button class="filter-chip px-4 py-2 rounded-lg text-sm font-medium" data-period="90d">90 Days</button>
+                        <button class="filter-chip px-4 py-2 rounded-lg text-sm font-medium" data-period="1y">1 Year</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Metrics -->
+    <section class="py-8 -mt-4 relative z-10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="metric-card glass rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <span class="trend-indicator trend-up">+12.5%</span>
+                    </div>
+                    <h3 class="text-gray-300 text-sm font-medium mb-2">Total Stock Value</h3>
+                    <p class="text-2xl font-bold mb-1" id="totalStockValue">$0</p>
+                    <p class="text-gray-400 text-sm">Current inventory value</p>
+                </div>
+
+                <div class="metric-card glass rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                        <span class="trend-indicator trend-up">+8.2%</span>
+                    </div>
+                    <h3 class="text-gray-300 text-sm font-medium mb-2">Consumption Rate</h3>
+                    <p class="text-2xl font-bold mb-1" id="consumptionRate">0 L</p>
+                    <p class="text-gray-400 text-sm">Average daily usage</p>
+                </div>
+
+                <div class="metric-card glass rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </div>
+                        <span class="trend-indicator trend-up">+15.8%</span>
+                    </div>
+                    <h3 class="text-gray-300 text-sm font-medium mb-2">Revenue Generated</h3>
+                    <p class="text-2xl font-bold mb-1" id="revenueGenerated">$0</p>
+                    <p class="text-gray-400 text-sm">From stock sales</p>
+                </div>
+
+                <div class="metric-card glass rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="trend-indicator trend-down">-3.2%</span>
+                    </div>
+                    <h3 class="text-gray-300 text-sm font-medium mb-2">Stock Turnover</h3>
+                    <p class="text-2xl font-bold mb-1" id="stockTurnover">0.0x</p>
+                    <p class="text-gray-400 text-sm">Inventory turnover rate</p>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="dashboard-grid mb-8">
+                <!-- Stock Trends Chart -->
+                <div class="chart-container p-6 text-white">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold">Stock Level Trends</h3>
+                        <div class="flex space-x-2">
+                            <button class="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors">Daily</button>
+                            <button class="text-gray-400 hover:text-cyan-300 text-sm font-medium transition-colors">Weekly</button>
+                        </div>
+                    </div>
+                    <div id="stockTrendsChart" class="h-80">
+                        <!-- Chart populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Consumption Patterns -->
+                <div class="chart-container p-6 text-white">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold">Consumption Patterns</h3>
+                        <div class="flex space-x-2">
+                            <button class="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors">By Category</button>
+                            <button class="text-gray-400 hover:text-cyan-300 text-sm font-medium transition-colors">By Department</button>
+                        </div>
+                    </div>
+                    <div id="consumptionPatternsChart" class="h-80">
+                        <!-- Chart populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Revenue Analysis -->
+                <div class="chart-container p-6 text-white">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold">Revenue Analysis</h3>
+                        <div class="flex space-x-2">
+                            <button class="text-green-400 hover:text-green-300 text-sm font-medium transition-colors">Monthly</button>
+                            <button class="text-gray-400 hover:text-cyan-300 text-sm font-medium transition-colors">Quarterly</button>
+                        </div>
+                    </div>
+                    <div id="revenueChart" class="h-80">
+                        <!-- Chart populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Stock Efficiency -->
+                <div class="chart-container p-6 text-white">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold">Stock Efficiency</h3>
+                        <div class="flex space-x-2">
+                            <button class="text-amber-400 hover:text-amber-300 text-sm font-medium transition-colors">Current</button>
+                            <button class="text-gray-400 hover:text-cyan-300 text-sm font-medium transition-colors">Projected</button>
+                        </div>
+                    </div>
+                    <div id="efficiencyChart" class="h-80">
+                        <!-- Chart populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Analytics -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Top Products -->
+                <div class="glass rounded-xl p-6 text-white">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold">Top Performing Products</h3>
+                        <button class="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors">View All</button>
+                    </div>
+                    <div class="space-y-4" id="topProductsList">
+                        <!-- List populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Recent Alerts -->
+                <div class="glass rounded-xl p-6 text-white">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold">Recent Alerts & Insights</h3>
+                        <button class="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors">Manage Alerts</button>
+                    </div>
+                    <div class="space-y-4" id="recentAlerts">
+                        <!-- List populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="glass rounded-xl p-6 text-white">
+                <h3 class="text-lg font-semibold mb-6">Export & Reports</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white/5 rounded-lg p-4">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-white">Inventory Report</h4>
+                                <p class="text-sm text-gray-400">Complete stock analysis</p>
+                            </div>
+                        </div>
+                        <button onclick="exportReport('inventory')" class="export-btn w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-sm font-medium transition-all">
+                            Export PDF
+                        </button>
+                    </div>
+
+                    <div class="bg-white/5 rounded-lg p-4">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-white">Consumption Analysis</h4>
+                                <p class="text-sm text-gray-400">Usage patterns and trends</p>
+                            </div>
+                        </div>
+                        <button onclick="exportReport('consumption')" class="export-btn w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-sm font-medium transition-all">
+                            Export CSV
+                        </button>
+                    </div>
+
+                    <div class="bg-white/5 rounded-lg p-4">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-white">Financial Summary</h4>
+                                <p class="text-sm text-gray-400">Revenue and cost analysis</p>
+                            </div>
+                        </div>
+                        <button onclick="exportReport('financial')" class="export-btn w-full bg-purple-500 hover:bg-purple-600 text-white py-2 rounded-lg text-sm font-medium transition-all">
+                            Export Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Report Generation Modal -->
+    <div id="reportModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass rounded-2xl p-8 max-w-2xl w-full text-white transform scale-95 opacity-0 transition-all duration-300" id="reportModalContent">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold">Generate Custom Report</h3>
+                    <button onclick="closeReportModal()" class="text-gray-400 hover:text-cyan-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="reportForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Report Type</label>
+                            <select id="reportType" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <option value="inventory">Inventory Report</option>
+                                <option value="consumption">Consumption Analysis</option>
+                                <option value="financial">Financial Summary</option>
+                                <option value="custom">Custom Report</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Date Range</label>
+                            <select id="dateRange" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <option value="7d">Last 7 Days</option>
+                                <option value="30d">Last 30 Days</option>
+                                <option value="90d">Last 90 Days</option>
+                                <option value="1y">Last Year</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Format</label>
+                            <select id="reportFormat" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <option value="pdf">PDF Report</option>
+                                <option value="excel">Excel Workbook</option>
+                                <option value="csv">CSV Data</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Include Charts</label>
+                            <select id="includeCharts" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <option value="yes">Yes, include visualizations</option>
+                                <option value="no">No, data only</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Additional Filters</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <select id="categoryFilter" class="bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <option value="">All Categories</option>
+                                <option value="Hydraulic Fluids">Hydraulic Fluids</option>
+                                <option value="Engine Oils">Engine Oils</option>
+                                <option value="Gear Oils">Gear Oils</option>
+                            </select>
+                            <select id="clientFilter" class="bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <option value="">All Clients</option>
+                                <option value="internal">Internal Only</option>
+                                <option value="external">External Only</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Report Title</label>
+                        <input type="text" id="reportTitle" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Enter report title">
+                    </div>
+                    
+                    <div class="flex space-x-4 pt-6">
+                        <button type="button" onclick="closeReportModal()" class="flex-1 border border-white/30 text-white hover:bg-white/10 px-6 py-2 rounded-lg font-medium transition-all">
+                            Cancel
+                        </button>
+                        <button type="submit" class="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-lg font-medium transition-all">
+                            Generate Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize analytics page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMetrics();
+            initializeCharts();
+            loadTopProducts();
+            loadRecentAlerts();
+            initializeFilters();
+        });
+
+        // Update key metrics
+        function updateMetrics() {
+            // Calculate metrics from TIMS data
+            const totalValue = TIMS.data.products.reduce((sum, product) => {
+                const sellingPrice = product.sellingPrice ?? product.cost * (1 + product.markup / 100);
+                return sum + (product.stock * sellingPrice);
+            }, 0);
+            
+            const consumptionRate = TIMS.calculations.getWeeklyConsumption() / 7;
+            const revenue = totalValue * 0.1; // Assuming 10% monthly turnover
+            const turnover = 4.2; // Mock turnover rate
+            
+            document.getElementById('totalStockValue').textContent = '$' + totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 });
+            document.getElementById('consumptionRate').textContent = consumptionRate.toFixed(1) + ' L';
+            document.getElementById('revenueGenerated').textContent = '$' + revenue.toLocaleString(undefined, { maximumFractionDigits: 0 });
+            document.getElementById('stockTurnover').textContent = turnover.toFixed(1) + 'x';
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            renderStockTrendsChart();
+            renderConsumptionPatternsChart();
+            renderRevenueChart();
+            renderEfficiencyChart();
+        }
+
+        function renderStockTrendsChart() {
+            const container = document.getElementById('stockTrendsChart');
+            
+            // Mock data for stock trends
+            const data = [
+                { date: '2024-01-01', stock: 1850, consumption: 245 },
+                { date: '2024-01-02', stock: 1820, consumption: 265 },
+                { date: '2024-01-03', stock: 1795, consumption: 225 },
+                { date: '2024-01-04', stock: 1770, consumption: 285 },
+                { date: '2024-01-05', stock: 1745, consumption: 235 },
+                { date: '2024-01-06', stock: 1720, consumption: 275 },
+                { date: '2024-01-07', stock: 1695, consumption: 255 }
+            ];
+            
+            const html = `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
+                        <span>Stock Level</span>
+                        <span>Daily Consumption</span>
+                    </div>
+                    ${data.map((item, index) => {
+                        const stockHeight = (item.stock / 2000) * 100;
+                        const consumptionHeight = (item.consumption / 300) * 100;
+                        
+                        return `
+                            <div class="flex items-center space-x-4">
+                                <div class="w-16 text-xs text-gray-400">${new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                                <div class="flex-1 flex space-x-2">
+                                    <div class="bg-blue-400 h-6 rounded" style="width: ${stockHeight}%"></div>
+                                    <div class="bg-green-400 h-6 rounded" style="width: ${consumptionHeight}%"></div>
+                                </div>
+                                <div class="w-20 text-xs text-right">
+                                    <div class="text-blue-400">${item.stock}</div>
+                                    <div class="text-green-400">${item.consumption}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="flex justify-center space-x-6 mt-4 text-xs">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-blue-400 rounded"></div>
+                        <span class="text-gray-400">Stock Level</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-400 rounded"></div>
+                        <span class="text-gray-400">Consumption</span>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function renderConsumptionPatternsChart() {
+            const container = document.getElementById('consumptionPatternsChart');
+            
+            const categories = [
+                { name: 'Hydraulic Fluids', value: 35, color: '#4F6F68' },
+                { name: 'Engine Oils', value: 25, color: '#9FB59E' },
+                { name: 'Gear Oils', value: 20, color: '#C9A755' },
+                { name: 'Compressor Oils', value: 12, color: '#B67C55' },
+                { name: 'Others', value: 8, color: '#8FA6B2' }
+            ];
+            
+            const html = `
+                <div class="space-y-4">
+                    ${categories.map(category => `
+                        <div class="flex items-center space-x-3">
+                            <div class="w-4 h-4 rounded-full" style="background-color: ${category.color}"></div>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-300">${category.name}</span>
+                                    <span class="text-gray-400">${category.value}%</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-3">
+                                    <div class="h-3 rounded-full" style="width: ${category.value}%; background-color: ${category.color}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="mt-6 p-4 bg-white/5 rounded-lg">
+                    <h4 class="font-medium text-white mb-2">Key Insights</h4>
+                    <ul class="text-sm text-gray-300 space-y-1">
+                        <li>• Hydraulic fluids account for 35% of total consumption</li>
+                        <li>• Engine oils show 12% increase this month</li>
+                        <li>• Gear oil consumption remains stable</li>
+                    </ul>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function renderRevenueChart() {
+            const container = document.getElementById('revenueChart');
+            
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const revenue = [12500, 15800, 14200, 18900, 17600, 20300];
+            const costs = [8900, 11200, 9800, 13400, 12100, 14500];
+            
+            const html = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-6 gap-2 mb-4">
+                        ${months.map((month, index) => {
+                            const revenueHeight = (revenue[index] / 25000) * 100;
+                            const profitHeight = ((revenue[index] - costs[index]) / 25000) * 100;
+                            
+                            return `
+                                <div class="text-center">
+                                    <div class="h-32 bg-gray-700 rounded-lg relative mb-2">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-green-400 rounded-lg" style="height: ${revenueHeight}%"></div>
+                                        <div class="absolute bottom-0 left-0 right-0 bg-blue-400 rounded-lg" style="height: ${profitHeight}%"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-400">${month}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+                <div class="flex justify-center space-x-6 text-xs">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-400 rounded"></div>
+                        <span class="text-gray-400">Revenue</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-blue-400 rounded"></div>
+                        <span class="text-gray-400">Profit</span>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-white/5 rounded-lg">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-300">Total Revenue (6 months)</span>
+                        <span class="text-green-400 font-medium">$99,300</span>
+                    </div>
+                    <div class="flex justify-between text-sm mt-1">
+                        <span class="text-gray-300">Average Monthly Profit</span>
+                        <span class="text-blue-400 font-medium">$6,217</span>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function renderEfficiencyChart() {
+            const container = document.getElementById('efficiencyChart');
+            
+            const products = [
+                { name: 'Hydraulic Oil 225', efficiency: 91, stock: 25, turnover: 3.4 },
+                { name: 'T&T 300T Grease 20kg', efficiency: 84, stock: 12, turnover: 2.1 },
+                { name: '30A Blade Fuse', efficiency: 76, stock: 30, turnover: 5.7 },
+                { name: 'Amber Indicator Bulbs', efficiency: 88, stock: 65, turnover: 4.9 }
+            ];
+            
+            const html = `
+                <div class="space-y-3">
+                    ${products.map(product => {
+                        const efficiencyColor = product.efficiency >= 90 ? 'bg-green-400' : 
+                                              product.efficiency >= 80 ? 'bg-yellow-400' : 'bg-red-400';
+                        
+                        return `
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-white mb-1">${product.name}</p>
+                                    <div class="flex items-center space-x-4 text-xs text-gray-400">
+                                        <span>Stock: ${product.stock}</span>
+                                        <span>Turnover: ${product.turnover}x</span>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-lg font-bold text-white">${product.efficiency}%</div>
+                                    <div class="w-16 h-2 bg-gray-700 rounded-full mt-1">
+                                        <div class="h-2 ${efficiencyColor} rounded-full" style="width: ${product.efficiency}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="mt-4 p-3 bg-white/5 rounded-lg">
+                    <h4 class="font-medium text-white mb-2">Efficiency Rating</h4>
+                    <div class="flex items-center space-x-4 text-xs">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-green-400 rounded"></div>
+                            <span class="text-gray-300">Excellent (90%+)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-yellow-400 rounded"></div>
+                            <span class="text-gray-300">Good (80-89%)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-red-400 rounded"></div>
+                            <span class="text-gray-300">Needs Attention (&lt;80%)</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // Load top products
+        function loadTopProducts() {
+            const container = document.getElementById('topProductsList');
+            
+            const topProducts = [
+                { name: 'Hydraulic Oil 225', revenue: 21000, growth: '+6.5%', trend: 'up' },
+                { name: 'Amber Indicator Bulbs', revenue: 8450, growth: '+4.2%', trend: 'up' },
+                { name: '30A Blade Fuse', revenue: 6350, growth: '-1.8%', trend: 'down' },
+                { name: 'T&T 300T Grease 20kg', revenue: 7800, growth: '+9.1%', trend: 'up' }
+            ];
+            
+            const html = topProducts.map((product, index) => {
+                const trendColor = product.trend === 'up' ? 'text-green-400' : 'text-red-400';
+                const rankColor = index < 3 ? ['bg-yellow-500', 'bg-gray-400', 'bg-amber-600'][index] : 'bg-gray-600';
+                
+                return `
+                    <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 ${rankColor} rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                ${index + 1}
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-white">${product.name}</p>
+                                <p class="text-xs text-gray-400">Top performer</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold text-white">$${product.revenue.toLocaleString()}</p>
+                            <p class="text-xs ${trendColor}">${product.growth}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // Load recent alerts
+        function loadRecentAlerts() {
+            const container = document.getElementById('recentAlerts');
+            
+            const alerts = [
+                { type: 'warning', message: 'Low stock alert: T&T 300T Grease 20kg', time: '2 hours ago', action: 'Reorder' },
+                { type: 'info', message: 'Fuse consumption trending higher than forecast', time: '4 hours ago', action: 'Investigate' },
+                { type: 'success', message: 'Stock replenished: Amber Indicator Bulbs', time: '1 day ago', action: 'View' },
+                { type: 'warning', message: 'Supplier delivery delayed for Hydraulic Oil 225', time: '2 days ago', action: 'Contact' }
+            ];
+            
+            const html = alerts.map(alert => {
+                const iconColor = {
+                    warning: 'text-amber-400',
+                    info: 'text-blue-400',
+                    success: 'text-green-400'
+                }[alert.type];
+                
+                const bgColor = {
+                    warning: 'bg-amber-500/20',
+                    info: 'bg-blue-500/20',
+                    success: 'bg-green-500/20'
+                }[alert.type];
+                
+                return `
+                    <div class="flex items-start space-x-3 p-3 bg-white/5 rounded-lg">
+                        <div class="w-8 h-8 ${bgColor} rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-white mb-1">${alert.message}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-400">${alert.time}</span>
+                                <button class="text-xs text-cyan-400 hover:text-cyan-300 transition-colors">${alert.action}</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // Initialize filters
+        function initializeFilters() {
+            const filterChips = document.querySelectorAll('.filter-chip');
+            
+            filterChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    // Remove active class from all chips
+                    filterChips.forEach(c => c.classList.remove('active'));
+                    // Add active class to clicked chip
+                    this.classList.add('active');
+                    
+                    // Update data based on selected period
+                    const period = this.dataset.period;
+                    updateMetricsForPeriod(period);
+                });
+            });
+        }
+
+        function updateMetricsForPeriod(period) {
+            // Simulate data update based on period
+            TIMS.ui.showNotification('Data Updated', `Analytics updated for ${period} period`);
+        }
+
+        // Export functions
+        function exportReport(type) {
+            TIMS.ui.showNotification('Export Started', `Generating ${type} report...`);
+            
+            // Simulate report generation
+            setTimeout(() => {
+                const formats = {
+                    inventory: 'PDF',
+                    consumption: 'CSV',
+                    financial: 'Excel'
+                };
+                TIMS.ui.showNotification('Export Complete', `${formats[type]} report generated successfully`);
+            }, 2000);
+        }
+
+        // Report modal functions
+        function openReportModal() {
+            const modal = document.getElementById('reportModal');
+            const content = document.getElementById('reportModalContent');
+            
+            modal.classList.remove('hidden');
+            
+            setTimeout(() => {
+                content.style.transform = 'scale(1)';
+                content.style.opacity = '1';
+            }, 10);
+        }
+
+        function closeReportModal() {
+            const modal = document.getElementById('reportModal');
+            const content = document.getElementById('reportModalContent');
+            
+            content.style.transform = 'scale(0.95)';
+            content.style.opacity = '0';
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Handle report form submission
+        document.getElementById('reportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const reportType = document.getElementById('reportType').value;
+            const dateRange = document.getElementById('dateRange').value;
+            const format = document.getElementById('reportFormat').value;
+            
+            TIMS.ui.showNotification('Report Generation', `Generating ${reportType} report in ${format} format...`);
+            closeReportModal();
+            
+            // Simulate report generation
+            setTimeout(() => {
+                TIMS.ui.showNotification('Report Ready', `Your ${reportType} report has been generated successfully`);
+            }, 3000);
+        });
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
+
+

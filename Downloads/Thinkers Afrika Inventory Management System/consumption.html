@@ -1,0 +1,874 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumption Tracking - TIMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="theme.css">
+    <style>
+        .tab-button {
+            transition: all 0.3s ease;
+            position: relative;
+            color: var(--text-secondary);
+        }
+        
+        .tab-button.active {
+            background: rgba(79, 111, 104, 0.12);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+        
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-primary);
+            border-radius: 999px;
+        }
+        
+        .tab-content {
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        
+        .tab-content.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .consumption-card {
+            transition: all 0.24s ease-out;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+        }
+        
+        .consumption-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-soft);
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0.5rem;
+            width: 0.5rem;
+            height: 0.5rem;
+            background: var(--accent-primary);
+            border-radius: 50%;
+        }
+        
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            top: 1rem;
+            width: 1px;
+            height: calc(100% - 1rem);
+            background: var(--border);
+        }
+        
+        .timeline-item:last-child::after {
+            display: none;
+        }
+        
+        .client-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            background: rgba(124, 130, 97, 0.15);
+            color: var(--accent-secondary);
+        }
+        
+        .quick-action-btn {
+            transition: all 0.2s ease;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+        
+        .quick-action-btn:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-primary);
+        }
+    </style>
+</head>
+<body class="theme-neutral overflow-x-hidden">
+    <!-- Navigation -->
+    <nav class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-8">
+                <div class="flex items-center space-x-3">
+                    <div class="brand-mark w-8 h-8 rounded-lg flex items-center justify-center">
+                        <span class="font-bold text-sm">T</span>
+                    </div>
+                    <span class="text-primary font-semibold text-lg">TIMS</span>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="nav-link px-3 py-2 text-sm font-medium">Dashboard</a>
+                    <a href="stock-management.html" class="nav-link px-3 py-2 text-sm font-medium">Stock</a>
+                    <a href="consumption.html" class="nav-link active px-3 py-2 text-sm font-medium">Consumption</a>
+                    <a href="analytics.html" class="nav-link px-3 py-2 text-sm font-medium">Analytics</a>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button id="exportBtn" class="bg-cyan-500 hover:bg-cyan-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Export Data
+                </button>
+                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section class="hero-bg pt-24 pb-8">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-primary mb-2">Consumption Tracking</h1>
+                    <p class="text-secondary">Monitor lubricant usage across internal operations and external clients</p>
+                </div>
+                <div class="flex space-x-4">
+                    <button onclick="openConsumptionModal()" class="bg-cyan-500 hover:bg-cyan-600 px-6 py-2 rounded-lg font-medium transition-all">
+                        Log Consumption
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tab Navigation -->
+    <section class="py-8 -mt-4 relative z-10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="glass rounded-xl p-6 mb-8">
+                <div class="flex space-x-1 bg-white/5 rounded-lg p-1">
+                    <button id="internalTab" class="tab-button flex-1 px-6 py-3 rounded-lg text-sm font-medium border border-transparent active" onclick="switchTab('internal')">
+                        Thinkers Internal
+                    </button>
+                    <button id="externalTab" class="tab-button flex-1 px-6 py-3 rounded-lg text-sm font-medium border border-transparent" onclick="switchTab('external')">
+                        External Clients
+                    </button>
+                </div>
+            </div>
+
+            <!-- Internal Consumption Tab -->
+            <div id="internalContent" class="tab-content active">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Consumption Form -->
+                    <div class="lg:col-span-1">
+                        <div class="glass rounded-xl p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">Quick Log</h3>
+                            <form id="internalConsumptionForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Product</label>
+                                    <select id="internalProduct" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                        <option value="">Select Product</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Department/Unit</label>
+                                    <select id="internalDepartment" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                        <option value="">Select Department</option>
+                                        <option value="Mining Unit A">Mining Unit A</option>
+                                        <option value="Mining Unit B">Mining Unit B</option>
+                                        <option value="Machine Shop">Machine Shop</option>
+                                        <option value="Maintenance">Maintenance</option>
+                                        <option value="Fleet Operations">Fleet Operations</option>
+                                        <option value="Processing Plant">Processing Plant</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Quantity</label>
+                                        <input type="number" id="internalQuantity" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="0">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Unit</label>
+                                        <select id="internalUnit" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                            <option value="L">Liters</option>
+                                            <option value="KG">Kilograms</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Purpose/Notes</label>
+                                    <textarea id="internalNotes" rows="3" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Usage purpose or additional notes"></textarea>
+                                </div>
+                                <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-3 rounded-lg font-medium transition-all">
+                                    Log Consumption
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button onclick="duplicateLastConsumption('internal')" class="quick-action-btn w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-all">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium">Duplicate Last Entry</p>
+                                            <p class="text-xs text-gray-400">Copy previous consumption</p>
+                                        </div>
+                                    </div>
+                                </button>
+                                <button onclick="viewConsumptionHistory('internal')" class="quick-action-btn w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-all">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium">View History</p>
+                                            <p class="text-xs text-gray-400">Recent consumption records</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Consumption -->
+                    <div class="lg:col-span-2">
+                        <div class="glass rounded-xl p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold">Recent Internal Consumption</h3>
+                                <div class="flex space-x-2">
+                                    <button class="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors">Last 7 Days</button>
+                                    <button class="text-gray-400 hover:text-cyan-300 text-sm font-medium transition-colors">Last 30 Days</button>
+                                </div>
+                            </div>
+                            <div id="internalTimeline" class="space-y-4">
+                                <!-- Timeline items populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- External Consumption Tab -->
+            <div id="externalContent" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Consumption Form -->
+                    <div class="lg:col-span-1">
+                        <div class="glass rounded-xl p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">Client Consumption</h3>
+                            <form id="externalConsumptionForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Client</label>
+                                    <select id="externalClient" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                        <option value="">Select Client</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Product</label>
+                                    <select id="externalProduct" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                        <option value="">Select Product</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Quantity</label>
+                                        <input type="number" id="externalQuantity" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="0">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Unit</label>
+                                        <select id="externalUnit" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                            <option value="L">Liters</option>
+                                            <option value="KG">Kilograms</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Work Order/Project</label>
+                                    <input type="text" id="workOrder" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Work order or project name">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Notes</label>
+                                    <textarea id="externalNotes" rows="3" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Service notes or special instructions"></textarea>
+                                </div>
+                                <button type="submit" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg font-medium transition-all">
+                                    Log Client Consumption
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Client Quick Select -->
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Quick Select</h3>
+                            <div class="space-y-3" id="clientQuickSelect">
+                                <!-- Client buttons populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client Consumption Overview -->
+                    <div class="lg:col-span-2">
+                        <div class="glass rounded-xl p-6 mb-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold">Client Consumption Overview</h3>
+                                <div class="flex space-x-2">
+                                    <button class="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors">This Month</button>
+                                    <button class="text-gray-400 hover:text-cyan-300 text-sm font-medium transition-colors">This Quarter</button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-white/5 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-gray-300 mb-2">Total Client Consumption</h4>
+                                    <p class="text-2xl font-bold text-white" id="totalExternalConsumption">0 L</p>
+                                    <p class="text-sm text-gray-400">This month</p>
+                                </div>
+                                <div class="bg-white/5 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-gray-300 mb-2">Revenue Generated</h4>
+                                    <p class="text-2xl font-bold text-white" id="externalRevenue">$0</p>
+                                    <p class="text-sm text-gray-400">From external clients</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent External Consumption -->
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-6">Recent Client Consumption</h3>
+                            <div id="externalTimeline" class="space-y-4">
+                                <!-- Timeline items populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Floating Action Button -->
+    <button class="floating-btn rounded-full p-4" onclick="openConsumptionModal()">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+    </button>
+
+    <!-- Consumption Modal -->
+    <div id="consumptionModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass rounded-2xl p-8 max-w-lg w-full text-white transform scale-95 opacity-0 transition-all duration-300" id="modalContent">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold">Log Consumption</h3>
+                    <button onclick="closeConsumptionModal()" class="text-gray-400 hover:text-cyan-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="consumptionForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Consumption Type</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button type="button" id="internalBtn" class="consumption-type-btn bg-cyan-500/20 border border-cyan-500 text-cyan-400 py-3 rounded-lg font-medium transition-all" onclick="selectConsumptionType('internal')">
+                                Internal Use
+                            </button>
+                            <button type="button" id="externalBtn" class="consumption-type-btn bg-white/5 border border-white/20 text-white py-3 rounded-lg font-medium transition-all" onclick="selectConsumptionType('external')">
+                                External Client
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="consumptionFields">
+                        <!-- Fields populated by JavaScript based on type -->
+                    </div>
+                    
+                    <div class="flex space-x-4 pt-6">
+                        <button type="button" onclick="closeConsumptionModal()" class="flex-1 border border-white/30 text-white hover:bg-white/10 px-6 py-2 rounded-lg font-medium transition-all">
+                            Cancel
+                        </button>
+                        <button type="submit" class="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-lg font-medium transition-all">
+                            Log Consumption
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentConsumptionType = 'internal';
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProductsAndClients();
+            loadConsumptionTimeline();
+            updateExternalConsumptionStats();
+            initializeForms();
+        });
+
+        // Load products and clients
+        function loadProductsAndClients() {
+            // Populate product selects
+            const internalProduct = document.getElementById('internalProduct');
+            const externalProduct = document.getElementById('externalProduct');
+            
+            TIMS.data.products.forEach(product => {
+                const option1 = new Option(product.name, product.id);
+                const option2 = new Option(product.name, product.id);
+                internalProduct.add(option1);
+                externalProduct.add(option2);
+            });
+            
+            // Populate client selects
+            const externalClient = document.getElementById('externalClient');
+            const clientQuickSelect = document.getElementById('clientQuickSelect');
+            
+            TIMS.data.clients.forEach(client => {
+                if (client.type === 'external') {
+                    const option = new Option(client.name, client.id);
+                    externalClient.add(option);
+                    
+                    // Add quick select button
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'quick-action-btn w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-all';
+                    button.onclick = () => selectQuickClient(client.id);
+                    button.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="client-logo bg-purple-500/20 text-purple-400">${client.logo}</div>
+                            <div>
+                                <p class="text-sm font-medium">${client.name}</p>
+                                <p class="text-xs text-gray-400">External Client</p>
+                            </div>
+                        </div>
+                    `;
+                    clientQuickSelect.appendChild(button);
+                }
+            });
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab + 'Content').classList.add('active');
+        }
+
+        // Load consumption timeline
+        function loadConsumptionTimeline() {
+            loadInternalTimeline();
+            loadExternalTimeline();
+        }
+
+        function loadInternalTimeline() {
+            const container = document.getElementById('internalTimeline');
+            const internalConsumption = TIMS.data.consumption.filter(c => c.type === 'internal');
+            
+            const html = internalConsumption.slice(0, 8).map(consumption => {
+                const product = TIMS.data.products.find(p => p.id === consumption.productId);
+                return `
+                    <div class="timeline-item">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-white">${consumption.quantity} ${consumption.productId}</p>
+                                    <p class="text-sm text-gray-300">${product ? product.name : 'Unknown Product'}</p>
+                                </div>
+                            </div>
+                            <span class="text-sm text-gray-400">${consumption.date}</span>
+                        </div>
+                        <div class="ml-13">
+                            <p class="text-sm text-gray-300">Consumed by ${consumption.consumer}</p>
+                            <div class="flex items-center space-x-4 mt-2">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Stock: ${consumption.remaining}</span>
+                                <button class="text-xs text-cyan-400 hover:text-cyan-300 transition-colors">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
+
+        function loadExternalTimeline() {
+            const container = document.getElementById('externalTimeline');
+            const externalConsumption = TIMS.data.consumption.filter(c => c.type === 'external');
+            
+            const html = externalConsumption.slice(0, 8).map(consumption => {
+                const product = TIMS.data.products.find(p => p.id === consumption.productId);
+                const client = TIMS.data.clients.find(c => c.name === consumption.consumer);
+                
+                return `
+                    <div class="timeline-item">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="client-logo bg-purple-500/20 text-purple-400">${client ? client.logo : '??'}</div>
+                                <div>
+                                    <p class="font-medium text-white">${consumption.consumer}</p>
+                                    <p class="text-sm text-gray-300">${consumption.quantity} ${consumption.productId}</p>
+                                </div>
+                            </div>
+                            <span class="text-sm text-gray-400">${consumption.date}</span>
+                        </div>
+                        <div class="ml-13">
+                            <p class="text-sm text-gray-300">${product ? product.name : 'Unknown Product'}</p>
+                            <div class="flex items-center space-x-4 mt-2">
+                                <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Revenue: $${(consumption.quantity * 5.5).toFixed(2)}</span>
+                                <button class="text-xs text-cyan-400 hover:text-cyan-300 transition-colors">Generate Invoice</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // Update external consumption stats
+        function updateExternalConsumptionStats() {
+            const externalConsumption = TIMS.data.consumption.filter(c => c.type === 'external');
+            const totalQuantity = externalConsumption.reduce((sum, c) => sum + c.quantity, 0);
+            const totalRevenue = totalQuantity * 5.5; // Example pricing
+            
+            document.getElementById('totalExternalConsumption').textContent = `${totalQuantity} L`;
+            document.getElementById('externalRevenue').textContent = `$${totalRevenue.toFixed(0)}`;
+        }
+
+        // Initialize forms
+        function initializeForms() {
+            document.getElementById('internalConsumptionForm').addEventListener('submit', handleInternalConsumption);
+            document.getElementById('externalConsumptionForm').addEventListener('submit', handleExternalConsumption);
+            document.getElementById('consumptionForm').addEventListener('submit', handleModalConsumption);
+        }
+
+        // Form handlers
+        function handleInternalConsumption(e) {
+            e.preventDefault();
+            
+            const productId = document.getElementById('internalProduct').value;
+            const department = document.getElementById('internalDepartment').value;
+            const quantity = parseInt(document.getElementById('internalQuantity').value);
+            const unit = document.getElementById('internalUnit').value;
+            const notes = document.getElementById('internalNotes').value;
+            
+            if (!productId || !department || !quantity) {
+                TIMS.ui.showNotification('Validation Error', 'Please fill in all required fields', 'error');
+                return;
+            }
+            
+            // Update product stock
+            const product = TIMS.data.products.find(p => p.id === productId);
+            if (product) {
+                product.stock -= quantity;
+                
+                // Add to consumption log
+                TIMS.data.consumption.unshift({
+                    id: 'C' + String(TIMS.data.consumption.length + 1).padStart(3, '0'),
+                    productId: productId,
+                    quantity: quantity,
+                    type: 'internal',
+                    consumer: department,
+                    date: new Date().toISOString().split('T')[0],
+                    remaining: product.stock,
+                    notes: notes
+                });
+                
+                // Reset form
+                e.target.reset();
+                
+                // Update UI
+                loadInternalTimeline();
+                TIMS.ui.showNotification('Consumption Logged', `${quantity} ${unit} of ${product.name} logged for ${department}`);
+            }
+        }
+
+        function handleExternalConsumption(e) {
+            e.preventDefault();
+            
+            const clientId = document.getElementById('externalClient').value;
+            const productId = document.getElementById('externalProduct').value;
+            const quantity = parseInt(document.getElementById('externalQuantity').value);
+            const unit = document.getElementById('externalUnit').value;
+            const workOrder = document.getElementById('workOrder').value;
+            const notes = document.getElementById('externalNotes').value;
+            
+            if (!clientId || !productId || !quantity) {
+                TIMS.ui.showNotification('Validation Error', 'Please fill in all required fields', 'error');
+                return;
+            }
+            
+            // Update product stock
+            const product = TIMS.data.products.find(p => p.id === productId);
+            const client = TIMS.data.clients.find(c => c.id === clientId);
+            
+            if (product && client) {
+                product.stock -= quantity;
+                
+                // Add to consumption log
+                TIMS.data.consumption.unshift({
+                    id: 'C' + String(TIMS.data.consumption.length + 1).padStart(3, '0'),
+                    productId: productId,
+                    quantity: quantity,
+                    type: 'external',
+                    consumer: client.name,
+                    date: new Date().toISOString().split('T')[0],
+                    remaining: product.stock,
+                    workOrder: workOrder,
+                    notes: notes
+                });
+                
+                // Reset form
+                e.target.reset();
+                
+                // Update UI
+                loadExternalTimeline();
+                updateExternalConsumptionStats();
+                TIMS.ui.showNotification('Client Consumption Logged', `${quantity} ${unit} of ${product.name} logged for ${client.name}`);
+            }
+        }
+
+        // Modal functions
+        function openConsumptionModal() {
+            const modal = document.getElementById('consumptionModal');
+            const content = document.getElementById('modalContent');
+            
+            modal.classList.remove('hidden');
+            selectConsumptionType('internal');
+            
+            setTimeout(() => {
+                content.style.transform = 'scale(1)';
+                content.style.opacity = '1';
+            }, 10);
+        }
+
+        function closeConsumptionModal() {
+            const modal = document.getElementById('consumptionModal');
+            const content = document.getElementById('modalContent');
+            
+            content.style.transform = 'scale(0.95)';
+            content.style.opacity = '0';
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function selectConsumptionType(type) {
+            currentConsumptionType = type;
+            
+            // Update buttons
+            document.getElementById('internalBtn').className = type === 'internal' 
+                ? 'consumption-type-btn bg-cyan-500/20 border border-cyan-500 text-cyan-400 py-3 rounded-lg font-medium transition-all'
+                : 'consumption-type-btn bg-white/5 border border-white/20 text-white py-3 rounded-lg font-medium transition-all';
+            
+            document.getElementById('externalBtn').className = type === 'external' 
+                ? 'consumption-type-btn bg-purple-500/20 border border-purple-500 text-purple-400 py-3 rounded-lg font-medium transition-all'
+                : 'consumption-type-btn bg-white/5 border border-white/20 text-white py-3 rounded-lg font-medium transition-all';
+            
+            // Update fields
+            updateConsumptionFields(type);
+        }
+
+        function updateConsumptionFields(type) {
+            const container = document.getElementById('consumptionFields');
+            
+            if (type === 'internal') {
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Product</label>
+                        <select id="modalProduct" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            <option value="">Select Product</option>
+                            ${TIMS.data.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Department/Unit</label>
+                        <select id="modalDepartment" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            <option value="">Select Department</option>
+                            <option value="Mining Unit A">Mining Unit A</option>
+                            <option value="Mining Unit B">Mining Unit B</option>
+                            <option value="Machine Shop">Machine Shop</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Fleet Operations">Fleet Operations</option>
+                            <option value="Processing Plant">Processing Plant</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Quantity</label>
+                            <input type="number" id="modalQuantity" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Unit</label>
+                            <select id="modalUnit" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <option value="L">Liters</option>
+                                <option value="KG">Kilograms</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Client</label>
+                        <select id="modalClient" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            <option value="">Select Client</option>
+                            ${TIMS.data.clients.filter(c => c.type === 'external').map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Product</label>
+                        <select id="modalProduct" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            <option value="">Select Product</option>
+                            ${TIMS.data.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Quantity</label>
+                            <input type="number" id="modalQuantity" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Unit</label>
+                            <select id="modalUnit" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <option value="L">Liters</option>
+                                <option value="KG">Kilograms</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function handleModalConsumption(e) {
+            e.preventDefault();
+            
+            const productId = document.getElementById('modalProduct').value;
+            const quantity = parseInt(document.getElementById('modalQuantity').value);
+            const unit = document.getElementById('modalUnit').value;
+            
+            if (!productId || !quantity) {
+                TIMS.ui.showNotification('Validation Error', 'Please fill in all required fields', 'error');
+                return;
+            }
+            
+            if (currentConsumptionType === 'internal') {
+                const department = document.getElementById('modalDepartment').value;
+                if (!department) {
+                    TIMS.ui.showNotification('Validation Error', 'Please select a department', 'error');
+                    return;
+                }
+                
+                // Simulate internal consumption
+                const product = TIMS.data.products.find(p => p.id === productId);
+                if (product) {
+                    product.stock -= quantity;
+                    TIMS.data.consumption.unshift({
+                        id: 'C' + String(TIMS.data.consumption.length + 1).padStart(3, '0'),
+                        productId: productId,
+                        quantity: quantity,
+                        type: 'internal',
+                        consumer: department,
+                        date: new Date().toISOString().split('T')[0],
+                        remaining: product.stock
+                    });
+                    
+                    loadInternalTimeline();
+                    TIMS.ui.showNotification('Consumption Logged', `${quantity} ${unit} of ${product.name} logged for ${department}`);
+                }
+            } else {
+                const clientId = document.getElementById('modalClient').value;
+                if (!clientId) {
+                    TIMS.ui.showNotification('Validation Error', 'Please select a client', 'error');
+                    return;
+                }
+                
+                // Simulate external consumption
+                const product = TIMS.data.products.find(p => p.id === productId);
+                const client = TIMS.data.clients.find(c => c.id === clientId);
+                
+                if (product && client) {
+                    product.stock -= quantity;
+                    TIMS.data.consumption.unshift({
+                        id: 'C' + String(TIMS.data.consumption.length + 1).padStart(3, '0'),
+                        productId: productId,
+                        quantity: quantity,
+                        type: 'external',
+                        consumer: client.name,
+                        date: new Date().toISOString().split('T')[0],
+                        remaining: product.stock
+                    });
+                    
+                    loadExternalTimeline();
+                    updateExternalConsumptionStats();
+                    TIMS.ui.showNotification('Client Consumption Logged', `${quantity} ${unit} of ${product.name} logged for ${client.name}`);
+                }
+            }
+            
+            closeConsumptionModal();
+        }
+
+        // Quick actions
+        function duplicateLastConsumption(type) {
+            const lastConsumption = TIMS.data.consumption.find(c => c.type === type);
+            if (lastConsumption) {
+                TIMS.ui.showNotification('Duplicate Entry', `Duplicating last ${type} consumption entry`, 'info');
+                // Pre-fill form with last consumption data
+            } else {
+                TIMS.ui.showNotification('No Data', `No previous ${type} consumption found`, 'error');
+            }
+        }
+
+        function viewConsumptionHistory(type) {
+            TIMS.ui.showNotification('History View', `Opening ${type} consumption history - Feature coming soon`, 'info');
+        }
+
+        function selectQuickClient(clientId) {
+            const client = TIMS.data.clients.find(c => c.id === clientId);
+            if (client) {
+                document.getElementById('externalClient').value = clientId;
+                TIMS.ui.showNotification('Client Selected', `Selected ${client.name} for consumption logging`);
+            }
+        }
+
+        // Export functionality
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            TIMS.ui.showNotification('Export Started', 'Preparing consumption data export...');
+            setTimeout(() => {
+                TIMS.ui.showNotification('Export Complete', 'Consumption data exported successfully');
+            }, 2000);
+        });
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
+
+
