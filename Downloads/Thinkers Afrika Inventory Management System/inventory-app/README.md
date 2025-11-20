@@ -63,10 +63,17 @@ Modern Next.js 14 dashboard for Thinkers Afrika’s operations team. The app exp
 ## Project structure
 
 - `src/app/page.tsx` renders the dashboard composed of KPI cards, product table, and product form.
+- `src/app/products/*` contains the full CRUD UI for inventory items (list, new, edit).
+- `src/app/consumption/*` exposes CRUD interfaces for usage logs (list, new, edit).
 - `src/app/api/*` contains API route handlers for CRUD operations on products and consumption entries.
 - `src/lib/prisma.ts` exposes a singleton Prisma client.
 - `prisma/schema.prisma` defines the Product and Consumption models (with migrations under `prisma/migrations`).
 - `prisma/seed.ts` seeds the database with real domain data.
+
+## Managing data
+
+- Browse to `/products` to view the catalogue, create new items, edit details, or delete entries (with confirmation).
+- Use `/consumption` to review logged usage, `/consumption/new` to add records, and `/consumption/[id]` to edit existing logs.
 
 ## Next steps
 
