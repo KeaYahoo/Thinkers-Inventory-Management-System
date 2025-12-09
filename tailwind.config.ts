@@ -10,9 +10,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: "#F8FAFC",
-        surface: "#FFFFFF",
-        "border-subtle": "#E2E8F0",
+        canvas: { DEFAULT: "#F8FAFC" },
+        surface: { DEFAULT: "#FFFFFF" },
+        "border-subtle": { DEFAULT: "#E2E8F0" },
         primary: {
           DEFAULT: "#1E293B",
           muted: "#64748B",
@@ -22,9 +22,9 @@ const config: Config = {
           hover: "#0369A1",
         },
         status: {
-          success: "#10B981",
-          warning: "#F59E0B",
-          critical: "#EF4444",
+          success: { DEFAULT: "#10B981" },
+          warning: { DEFAULT: "#F59E0B" },
+          critical: { DEFAULT: "#EF4444" },
         },
       },
       boxShadow: {

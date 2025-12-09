@@ -15,10 +15,21 @@ const REQUIRED_FIELDS = [
 ];
 
 export async function GET() {
-  const products = await prisma.product.findMany({
-    orderBy: { name: "asc" },
-  });
-  return NextResponse.json(products);
+  try {
+    const products = await prisma.product.findMany({
+      orderBy: { name: "asc" },
+    });
+    return NextResponse.json(products);
+  } catch (error) {
+    console.error("[PRODUCTS_GET]", error);
+    const message =
+      error instanceof Error &&
+      (error.name === "PrismaClientInitializationError" ||
+        error.message.toLowerCase().includes("prisma"))
+        ? "Database connection or migration error; check DATABASE_URL and run prisma migrate dev."
+        : "Failed to fetch products";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -71,9 +82,12 @@ export async function POST(request: Request) {
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
     console.error("[PRODUCTS_POST]", error);
-    return NextResponse.json(
-      { error: "Failed to create product" },
-      { status: 500 },
-    );
+    const message =
+      error instanceof Error &&
+      (error.name === "PrismaClientInitializationError" ||
+        error.message.toLowerCase().includes("prisma"))
+        ? "Database connection or migration error; check DATABASE_URL and run prisma migrate dev."
+        : "Failed to create product";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

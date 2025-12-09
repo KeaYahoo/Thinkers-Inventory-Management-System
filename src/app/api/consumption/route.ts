@@ -2,11 +2,22 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const entries = await prisma.consumption.findMany({
-    orderBy: { date: "desc" },
-    include: { product: true },
-  });
-  return NextResponse.json(entries);
+  try {
+    const entries = await prisma.consumption.findMany({
+      orderBy: { date: "desc" },
+      include: { product: true },
+    });
+    return NextResponse.json(entries);
+  } catch (error) {
+    console.error("[CONSUMPTION_GET]", error);
+    const message =
+      error instanceof Error &&
+      (error.name === "PrismaClientInitializationError" ||
+        error.message.toLowerCase().includes("prisma"))
+        ? "Database connection or migration error; check DATABASE_URL and run prisma migrate dev."
+        : "Failed to fetch consumption history";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -64,7 +75,14 @@ export async function POST(request: Request) {
     )
       ? 400
       : 500;
+    const friendlyMessage =
+      status === 500 &&
+      error instanceof Error &&
+      (error.name === "PrismaClientInitializationError" ||
+        error.message.toLowerCase().includes("prisma"))
+        ? "Database connection or migration error; check DATABASE_URL and run prisma migrate dev."
+        : message;
     console.error("[CONSUMPTION_POST]", error);
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: friendlyMessage }, { status });
   }
 }

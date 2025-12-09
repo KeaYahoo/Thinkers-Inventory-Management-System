@@ -50,6 +50,16 @@ Modern Next.js 14 dashboard for Thinkers Afrika’s operations team. The app exp
 
    Navigate to [http://localhost:3000](http://localhost:3000) to view the dashboard.
 
+## Database setup
+
+Ensure your `.env` defines a valid `DATABASE_URL` pointing to your PostgreSQL instance. Then run:
+
+```bash
+npx prisma migrate dev --name init
+npx prisma generate
+npm run seed
+```
+
 ## Available scripts
 
 | Script            | Description                                         |
