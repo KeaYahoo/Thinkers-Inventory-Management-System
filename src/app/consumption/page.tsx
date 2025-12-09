@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Consumption } from "@/types/inventory";
 import { ConsumptionTable } from "@/components/ConsumptionTable";
 import { NexusBlock } from "@/components/NexusBlock";
-import { NexusBlock } from "@/components/NexusBlock";
 
 export default function ConsumptionPage() {
   const router = useRouter();
