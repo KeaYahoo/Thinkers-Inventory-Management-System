@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { Product } from "@/types/inventory";
 import { NexusBlock } from "@/components/NexusBlock";
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default function EditProductPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [form, setForm] = useState({
@@ -31,7 +32,7 @@ export default function EditProductPage({ params }: PageProps) {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`/api/products/${params.id}`);
+        const response = await fetch(`/api/products/${id}`);
         if (!response.ok) {
           const data = await response.json();
           throw new Error(data.error ?? "Failed to load product");
@@ -57,7 +58,7 @@ export default function EditProductPage({ params }: PageProps) {
       }
     };
     fetchProduct();
-  }, [params.id]);
+  }, [id]);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -82,7 +83,7 @@ export default function EditProductPage({ params }: PageProps) {
         ...form,
         sellingPrice,
       };
-      const response = await fetch(`/api/products/${params.id}`, {
+      const response = await fetch(`/api/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

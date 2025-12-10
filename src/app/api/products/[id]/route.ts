@@ -11,11 +11,12 @@ function parseId(id: string) {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const product = await prisma.product.findUnique({
-      where: { id: parseId(params.id) },
+      where: { id: parseId(id) },
     });
 
     if (!product) {
@@ -34,11 +35,12 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id: paramId } = await params;
     const body = await request.json();
-    const id = parseId(params.id);
+    const id = parseId(paramId);
 
     const product = await prisma.product.findUnique({ where: { id } });
     if (!product) {
@@ -97,10 +99,11 @@ export async function PUT(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const id = parseId(params.id);
+    const { id: paramId } = await params;
+    const id = parseId(paramId);
 
     await prisma.product.delete({ where: { id } });
     return NextResponse.json({ success: true });

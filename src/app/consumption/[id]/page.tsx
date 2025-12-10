@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { Consumption, Product } from "@/types/inventory";
 import { NexusBlock } from "@/components/NexusBlock";
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default function EditConsumptionPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [record, setRecord] = useState<Consumption | null>(null);
@@ -33,7 +34,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
     };
 
     const loadConsumption = async () => {
-      const response = await fetch(`/api/consumption/${params.id}`);
+      const response = await fetch(`/api/consumption/${id}`);
       if (!response.ok) {
         const payload = await response.json();
         throw new Error(payload.error ?? "Failed to load consumption entry");
@@ -52,7 +53,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
     Promise.allSettled([loadProducts(), loadConsumption()])
       .catch(() => undefined)
       .finally(() => setLoading(false));
-  }, [params.id]);
+  }, [id]);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -74,7 +75,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
         productId: Number(form.productId),
       };
 
-      const response = await fetch(`/api/consumption/${params.id}`, {
+      const response = await fetch(`/api/consumption/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

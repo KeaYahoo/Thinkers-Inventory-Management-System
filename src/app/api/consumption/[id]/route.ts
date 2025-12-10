@@ -11,11 +11,12 @@ function parseId(id: string) {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const record = await prisma.consumption.findUnique({
-      where: { id: parseId(params.id) },
+      where: { id: parseId(id) },
       include: { product: true },
     });
 
@@ -38,11 +39,12 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id: paramId } = await params;
     const body = await request.json();
-    const id = parseId(params.id);
+    const id = parseId(paramId);
 
     const existing = await prisma.consumption.findUnique({ where: { id } });
     if (!existing) {
@@ -165,10 +167,11 @@ export async function PUT(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const id = parseId(params.id);
+    const { id: paramId } = await params;
+    const id = parseId(paramId);
 
     const deleted = await prisma.$transaction(async (tx) => {
       const record = await tx.consumption.delete({
