@@ -3,32 +3,20 @@
 @tailwind utilities;
 
 @theme {
-  colors: {
-    canvas: #f8fafc;
-    surface: #ffffff;
-    "border-subtle": #e2e8f0;
-    primary: {
-      DEFAULT: #1e293b;
-      muted: #64748b;
-    };
-    brand: {
-      DEFAULT: #0284c7;
-      hover: #0369a1;
-    };
-    status: {
-      success: #10b981;
-      warning: #f59e0b;
-      critical: #ef4444;
-    };
-  };
-  boxShadow: {
-    surface: 0 8px 24px rgba(15, 23, 42, 0.08);
-    float: 0 16px 40px rgba(2, 132, 199, 0.16);
-  };
-  borderRadius: {
-    nexus: 1.5rem;
-    xl: 12px;
-  };
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border-subtle: #e2e8f0;
+  --color-primary: #1e293b;
+  --color-primary-muted: #64748b;
+  --color-brand: #0284c7;
+  --color-brand-hover: #0369a1;
+  --color-status-success: #10b981;
+  --color-status-warning: #f59e0b;
+  --color-status-critical: #ef4444;
+  --shadow-surface: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-float: 0 16px 40px rgba(2, 132, 199, 0.16);
+  --radius-nexus: 1.5rem;
+  --radius-xl: 12px;
 }
 
 :root {
