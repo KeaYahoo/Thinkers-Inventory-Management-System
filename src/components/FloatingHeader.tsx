@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, FileText, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, FileText, Settings } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Dashboard", Icon: LayoutDashboard },
-  { href: "/products", label: "Products", Icon: Package },
-  { href: "/consumption", label: "Consumption", Icon: FileText },
+  { href: "/inventory", label: "Inventory", Icon: Package },
+  { href: "/consumption", label: "Consumption", Icon: ShoppingCart },
   { href: "/reports", label: "Reports", Icon: FileText },
   { href: "/settings", label: "Settings", Icon: Settings },
 ];
@@ -50,4 +50,3 @@ export default function FloatingHeader() {
     </div>
   );
 }
-

@@ -10,6 +10,8 @@ type ProductTableProps = {
   loading?: boolean;
   onEdit: (id: number) => void;
   onDelete: (id: number) => Promise<void> | void;
+  createHref?: string;
+  createLabel?: string;
 };
 
 const currency = (value: number) =>
@@ -29,7 +31,14 @@ function getStockLabel(remaining: number, minStock: number): string {
   return "In stock";
 }
 
-export function ProductTable({ products, loading, onEdit, onDelete }: ProductTableProps) {
+export function ProductTable({
+  products,
+  loading,
+  onEdit,
+  onDelete,
+  createHref = "/products/new",
+  createLabel = "Create one",
+}: ProductTableProps) {
   if (loading) {
     return (
       <NexusBlock className="p-6">
@@ -43,8 +52,8 @@ export function ProductTable({ products, loading, onEdit, onDelete }: ProductTab
       <NexusBlock className="p-6">
         <p className="text-sm text-primary-muted">
           No products yet.{" "}
-          <Link className="text-brand underline" href="/products/new">
-            Create one
+          <Link className="text-brand underline" href={createHref}>
+            {createLabel}
           </Link>
           .
         </p>
@@ -107,4 +116,3 @@ export function ProductTable({ products, loading, onEdit, onDelete }: ProductTab
     </NexusBlock>
   );
 }
-
