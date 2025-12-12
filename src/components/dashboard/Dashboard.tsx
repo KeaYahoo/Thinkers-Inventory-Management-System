@@ -5,6 +5,8 @@ import Link from "next/link";
 import { KPICards } from "./KPICards";
 import { Consumption, Product } from "@/types/inventory";
 import { NexusBlock } from "@/components/NexusBlock";
+import { InventoryTrendChart } from "@/components/charts/InventoryTrendChart";
+import { CategoryBreakdownChart } from "@/components/charts/CategoryBreakdownChart";
 
 async function fetchJSON<T>(input: RequestInfo): Promise<T> {
   const response = await fetch(input);
@@ -61,6 +63,17 @@ export function Dashboard() {
 
       <KPICards products={products} consumption={consumption} loading={loading} />
 
+      <div className="grid gap-6 lg:grid-cols-2">
+        <NexusBlock className="p-6 sm:p-8 space-y-4">
+          <h2 className="text-lg font-semibold text-primary">Inventory trend</h2>
+          <InventoryTrendChart />
+        </NexusBlock>
+        <NexusBlock className="p-6 sm:p-8 space-y-4">
+          <h2 className="text-lg font-semibold text-primary">Category breakdown</h2>
+          <CategoryBreakdownChart />
+        </NexusBlock>
+      </div>
+
       <NexusBlock className="flex flex-wrap items-center justify-between gap-4 p-6 sm:p-8">
         <div className="space-y-1">
           <h2 className="text-lg font-semibold text-primary">Inventory summary</h2>
@@ -81,4 +94,3 @@ export function Dashboard() {
     </div>
   );
 }
-

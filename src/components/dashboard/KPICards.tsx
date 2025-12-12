@@ -1,4 +1,5 @@
 import { Consumption, Product } from "@/types/inventory";
+import { Activity, AlertTriangle, Boxes, Coins } from "lucide-react";
 
 type KPICardsProps = {
   products: Product[];
@@ -30,35 +31,39 @@ export function KPICards({ products, consumption, loading }: KPICardsProps) {
       value: loading ? "…" : formatNumber(totalInventory),
       subtext: "Units on hand",
       accent: "text-brand",
+      Icon: Boxes,
     },
     {
       title: "Weekly Consumption",
       value: loading ? "…" : `${formatNumber(weeklyConsumption)} units`,
       subtext: "Usage over the last 7 days",
       accent: "text-status-warning",
+      Icon: Activity,
     },
     {
       title: "Low Stock Alerts",
       value: loading ? "…" : lowStock.toString(),
       subtext: "Products at or below threshold",
       accent: "text-status-critical",
+      Icon: AlertTriangle,
     },
     {
       title: "Monthly Revenue",
       value: loading ? "…" : `R${formatNumber(monthlyRevenue, { maximumFractionDigits: 0 })}`,
       subtext: "Projected from current inventory",
       accent: "text-brand-hover",
+      Icon: Coins,
     },
   ];
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {cards.map((card) => (
-        <article
-          key={card.title}
-          className="nexus-block p-5"
-        >
-          <p className="text-sm text-primary-muted">{card.title}</p>
+        <article key={card.title} className="nexus-block p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-primary-muted">{card.title}</p>
+            <card.Icon className={`h-5 w-5 ${card.accent}`} aria-hidden />
+          </div>
           <p className={`mt-2 text-3xl font-semibold ${card.accent}`}>{card.value}</p>
           <p className="text-xs text-primary-muted">{card.subtext}</p>
         </article>
@@ -66,6 +71,4 @@ export function KPICards({ products, consumption, loading }: KPICardsProps) {
     </div>
   );
 }
-
-
 
