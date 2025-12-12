@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Product } from "@/types/inventory";
 import { NexusBlock } from "@/components/NexusBlock";
+import { useProducts } from "@/hooks/useProducts";
+import { useConsumption } from "@/hooks/useConsumption";
+import { useUI } from "@/context/UIContext";
 
 const initialState = {
   productId: "",
@@ -15,27 +17,12 @@ const initialState = {
 
 export default function NewConsumptionPage() {
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
+  const { products, isLoading: loadingProducts, error: productsError } = useProducts();
+  const { createConsumption } = useConsumption();
+  const { showToast } = useUI();
   const [form, setForm] = useState(initialState);
-  const [loadingProducts, setLoadingProducts] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const response = await fetch("/api/products");
-        if (!response.ok) throw new Error("Failed to fetch products");
-        const data = (await response.json()) as Product[];
-        setProducts(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unable to load products");
-      } finally {
-        setLoadingProducts(false);
-      }
-    };
-    loadProducts();
-  }, []);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -61,16 +48,8 @@ export default function NewConsumptionPage() {
         productId: Number(form.productId),
       };
 
-      const response = await fetch("/api/consumption", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error ?? "Failed to log consumption");
-      }
-
+      await createConsumption(payload);
+      showToast("Consumption logged", "success");
       router.push("/consumption");
       router.refresh();
     } catch (err) {
@@ -87,9 +66,9 @@ export default function NewConsumptionPage() {
         <h1 className="text-3xl mb-1 font-semibold text-primary">Log consumption</h1>
         <p className="text-sm text-primary-muted">Record internal or external usage of stock items.</p>
 
-        {error && (
+        {(error || productsError) && (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
-            {error}
+            {error ?? productsError?.message}
           </div>
         )}
 
@@ -172,4 +151,3 @@ export default function NewConsumptionPage() {
     </main>
   );
 }
-

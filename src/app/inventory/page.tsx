@@ -1,52 +1,25 @@
 'use client';
 
-import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Product } from "@/types/inventory";
 import { ProductTable } from "@/components/ProductTable";
 import { NexusBlock } from "@/components/NexusBlock";
+import { useProducts } from "@/hooks/useProducts";
+import { useUI } from "@/context/UIContext";
 
 export default function InventoryPage() {
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/products");
-      if (!response.ok) {
-        throw new Error("Failed to fetch products");
-      }
-      const data = (await response.json()) as Product[];
-      setProducts(data);
-      setError(null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to load products";
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+  const { products, isLoading, error, deleteProduct } = useProducts();
+  const { showToast } = useUI();
 
   const handleDelete = async (id: number) => {
     const confirmed = window.confirm("Are you sure you want to delete this product?");
     if (!confirmed) return;
     try {
-      const response = await fetch(`/api/products/${id}`, { method: "DELETE" });
-      if (!response.ok) {
-        const payload = await response.json();
-        throw new Error(payload.error ?? "Failed to delete product");
-      }
-      await loadProducts();
+      await deleteProduct(id);
+      showToast("Product deleted", "success");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete product");
+      showToast(err instanceof Error ? err.message : "Failed to delete product", "critical");
     }
   };
 
@@ -68,12 +41,12 @@ export default function InventoryPage() {
         </NexusBlock>
         {error && (
           <NexusBlock className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
+            {error.message}
           </NexusBlock>
         )}
         <ProductTable
           products={products}
-          loading={loading}
+          loading={isLoading}
           onEdit={handleEdit}
           onDelete={handleDelete}
           createHref="/inventory/new"

@@ -2,8 +2,9 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { Product } from "@/types/inventory";
 import { NexusBlock } from "@/components/NexusBlock";
+import { useProduct, useProducts } from "@/hooks/useProducts";
+import { useUI } from "@/context/UIContext";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -12,7 +13,9 @@ type PageProps = {
 export default function EditInventoryProductPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const [product, setProduct] = useState<Product | null>(null);
+  const { product, isLoading: productLoading, error: productError } = useProduct(id);
+  const { updateProduct } = useProducts();
+  const { showToast } = useUI();
   const [form, setForm] = useState({
     code: "",
     name: "",
@@ -25,40 +28,24 @@ export default function EditInventoryProductPage({ params }: PageProps) {
     minStock: 0,
     purchaseDate: new Date().toISOString().split("T")[0],
   });
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await fetch(`/api/products/${id}`);
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error ?? "Failed to load product");
-        }
-        const data = (await response.json()) as Product;
-        setProduct(data);
-        setForm({
-          code: data.code,
-          name: data.name,
-          description: data.description,
-          category: data.category,
-          stock: data.stock,
-          unit: data.unit,
-          cost: data.cost,
-          markup: data.markup,
-          minStock: data.minStock,
-          purchaseDate: data.purchaseDate.slice(0, 10),
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unable to load product");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProduct();
-  }, [id]);
+    if (!product) return;
+    setForm({
+      code: product.code,
+      name: product.name,
+      description: product.description,
+      category: product.category,
+      stock: product.stock,
+      unit: product.unit,
+      cost: product.cost,
+      markup: product.markup,
+      minStock: product.minStock,
+      purchaseDate: product.purchaseDate.slice(0, 10),
+    });
+  }, [product]);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -83,15 +70,8 @@ export default function EditInventoryProductPage({ params }: PageProps) {
         ...form,
         sellingPrice,
       };
-      const response = await fetch(`/api/products/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error ?? "Failed to update product");
-      }
+      await updateProduct(Number(id), payload);
+      showToast("Product updated", "success");
       router.push("/inventory");
       router.refresh();
     } catch (err) {
@@ -101,7 +81,7 @@ export default function EditInventoryProductPage({ params }: PageProps) {
     }
   };
 
-  if (loading || !product) {
+  if (productLoading) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8 text-sm text-primary-muted">
@@ -111,11 +91,11 @@ export default function EditInventoryProductPage({ params }: PageProps) {
     );
   }
 
-  if (!product) {
+  if (productError || !product) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
-          {error ?? "Product not found"}
+          {productError?.message ?? error ?? "Product not found"}
         </div>
       </main>
     );
@@ -247,4 +227,3 @@ function SelectField({ label, name, className, children, ...rest }: SelectProps)
     </label>
   );
 }
-

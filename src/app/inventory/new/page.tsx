@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { NexusBlock } from "@/components/NexusBlock";
+import { useProducts } from "@/hooks/useProducts";
+import { useUI } from "@/context/UIContext";
 
 type FormState = {
   code: string;
@@ -32,6 +34,8 @@ const initialState: FormState = {
 
 export default function NewInventoryProductPage() {
   const router = useRouter();
+  const { createProduct } = useProducts();
+  const { showToast } = useUI();
   const [form, setForm] = useState(initialState);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,15 +69,8 @@ export default function NewInventoryProductPage() {
         remaining: form.stock,
       };
 
-      const response = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error ?? "Failed to create product");
-      }
+      await createProduct(payload);
+      showToast("Product created", "success");
       router.push("/inventory");
       router.refresh();
     } catch (err) {
@@ -211,4 +208,3 @@ function SelectField({ label, name, className, children, ...rest }: SelectProps)
     </label>
   );
 }
-

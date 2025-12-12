@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import FloatingHeader from "@/components/FloatingHeader";
+import { UIProvider } from "@/context/UIContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,10 +30,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <FloatingHeader />
-        <main className="mx-auto min-h-screen max-w-7xl px-6 pt-36 pb-12">{children}</main>
+        <UIProvider>
+          <FloatingHeader />
+          <main className="mx-auto min-h-screen max-w-7xl px-6 pt-36 pb-12">{children}</main>
+        </UIProvider>
       </body>
     </html>
   );
 }
-

@@ -2,8 +2,11 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { Consumption, Product } from "@/types/inventory";
+import { Consumption } from "@/types/inventory";
 import { NexusBlock } from "@/components/NexusBlock";
+import { useProducts } from "@/hooks/useProducts";
+import { useConsumption, useConsumptionRecord } from "@/hooks/useConsumption";
+import { useUI } from "@/context/UIContext";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -12,8 +15,11 @@ type PageProps = {
 export default function EditConsumptionPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [record, setRecord] = useState<Consumption | null>(null);
+  const { products, isLoading: productsLoading, error: productsError } = useProducts();
+  const { record, isLoading: recordLoading, error: recordError } = useConsumptionRecord(id);
+  const { updateConsumption } = useConsumption();
+  const { showToast } = useUI();
+
   const [form, setForm] = useState({
     productId: "",
     quantity: 0,
@@ -21,39 +27,19 @@ export default function EditConsumptionPage({ params }: PageProps) {
     consumer: "",
     date: new Date().toISOString().split("T")[0],
   });
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadProducts = async () => {
-      const response = await fetch("/api/products");
-      if (!response.ok) throw new Error("Failed to fetch products");
-      const data = (await response.json()) as Product[];
-      setProducts(data);
-    };
-
-    const loadConsumption = async () => {
-      const response = await fetch(`/api/consumption/${id}`);
-      if (!response.ok) {
-        const payload = await response.json();
-        throw new Error(payload.error ?? "Failed to load consumption entry");
-      }
-      const data = (await response.json()) as Consumption;
-      setRecord(data);
-      setForm({
-        productId: data.productId.toString(),
-        quantity: data.quantity,
-        type: data.type,
-        consumer: data.consumer,
-        date: data.date.slice(0, 10),
-      });
-    };
-
-    Promise.allSettled([loadProducts(), loadConsumption()])
-      .catch(() => undefined)
-      .finally(() => setLoading(false));
-  }, [id]);
+    if (!record) return;
+    setForm({
+      productId: record.productId.toString(),
+      quantity: record.quantity,
+      type: record.type,
+      consumer: record.consumer,
+      date: record.date.slice(0, 10),
+    });
+  }, [record]);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -75,17 +61,12 @@ export default function EditConsumptionPage({ params }: PageProps) {
         productId: Number(form.productId),
       };
 
-      const response = await fetch(`/api/consumption/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error ?? "Failed to update entry");
-      }
+      const updated = await updateConsumption(Number(id), payload);
+      showToast("Consumption updated", "success");
+
       router.push("/consumption");
       router.refresh();
+      return updated as Consumption;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update entry");
     } finally {
@@ -93,12 +74,25 @@ export default function EditConsumptionPage({ params }: PageProps) {
     }
   };
 
-  if (loading || !record) {
+  const loading = productsLoading || recordLoading;
+  const combinedError = productsError ?? recordError;
+
+  if (loading) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8 text-sm text-primary-muted">
-          Loading consumption entry…
+          Loading consumption entry...
         </NexusBlock>
+      </main>
+    );
+  }
+
+  if (combinedError || !record) {
+    return (
+      <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
+          {combinedError?.message ?? "Consumption not found"}
+        </div>
       </main>
     );
   }
@@ -129,7 +123,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
               <option value="">Select product</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
-                  {product.code} · {product.name}
+                  {product.code} – {product.name}
                 </option>
               ))}
             </select>
@@ -168,7 +162,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
               onChange={handleChange}
               required
               className="nexus-input focus-ring mt-1"
-              />
+            />
           </label>
           <label className="text-xs font-medium text-primary-muted">
             Date
@@ -181,11 +175,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
               className="nexus-input focus-ring mt-1"
             />
           </label>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn-brand focus-ring w-full"
-          >
+          <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
             {submitting ? "Saving..." : "Update entry"}
           </button>
         </form>
@@ -193,6 +183,4 @@ export default function EditConsumptionPage({ params }: PageProps) {
     </main>
   );
 }
-
-
 

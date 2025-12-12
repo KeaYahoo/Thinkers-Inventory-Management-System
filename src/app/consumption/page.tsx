@@ -1,52 +1,26 @@
 'use client';
 
-import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Consumption } from "@/types/inventory";
 import { ConsumptionTable } from "@/components/ConsumptionTable";
 import { NexusBlock } from "@/components/NexusBlock";
+import { useConsumption } from "@/hooks/useConsumption";
+import { useUI } from "@/context/UIContext";
 
 export default function ConsumptionPage() {
   const router = useRouter();
-  const [records, setRecords] = useState<Consumption[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadConsumption = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/consumption");
-      if (!response.ok) {
-        throw new Error("Failed to fetch consumption history");
-      }
-      const data = (await response.json()) as Consumption[];
-      setRecords(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load consumption history");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadConsumption();
-  }, [loadConsumption]);
+  const { consumption, isLoading, error, deleteConsumption } = useConsumption();
+  const { showToast } = useUI();
 
   const handleDelete = async (id: number) => {
     const confirmed = window.confirm("Delete this log entry?");
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`/api/consumption/${id}`, { method: "DELETE" });
-      if (!response.ok) {
-        const payload = await response.json();
-        throw new Error(payload.error ?? "Failed to delete entry");
-      }
-      await loadConsumption();
+      await deleteConsumption(id);
+      showToast("Consumption entry deleted", "success");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete entry");
+      showToast(err instanceof Error ? err.message : "Failed to delete entry", "critical");
     }
   };
 
@@ -70,11 +44,12 @@ export default function ConsumptionPage() {
           </Link>
         </NexusBlock>
         {error && (
-          <NexusBlock className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</NexusBlock>
+          <NexusBlock className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error.message}
+          </NexusBlock>
         )}
-        <ConsumptionTable records={records} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
+        <ConsumptionTable records={consumption} loading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
       </div>
     </main>
   );
 }
-
