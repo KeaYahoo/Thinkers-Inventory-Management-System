@@ -36,7 +36,7 @@ export function ProductTable({
   loading,
   onEdit,
   onDelete,
-  createHref = "/products/new",
+  createHref = "/inventory/new",
   createLabel = "Create one",
 }: ProductTableProps) {
   if (loading) {
