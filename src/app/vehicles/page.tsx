@@ -55,7 +55,24 @@ export default function VehiclesPage() {
 
         <NexusBlock className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-6 text-sm text-primary-muted">Loading vehicles...</div>
+            <table className="nexus-table min-w-[860px]">
+              <thead>
+                <tr>
+                  <th>Reg Number</th>
+                  <th>Description</th>
+                  <th className="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={3} className="py-2">
+                      <div className="h-4 w-full rounded bg-brand-light" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : vehicles.length === 0 ? (
             <div className="p-6 text-sm text-primary-muted">
               No vehicles yet.{" "}
@@ -120,3 +137,4 @@ export default function VehiclesPage() {
     </main>
   );
 }
+

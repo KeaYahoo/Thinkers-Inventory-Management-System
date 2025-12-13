@@ -38,7 +38,28 @@ export default function TransfersPage() {
 
         <NexusBlock className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-6 text-sm text-primary-muted">Loading transfers...</div>
+            <table className="nexus-table min-w-[980px]">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Direction</th>
+                  <th>Product</th>
+                  <th>Vehicle</th>
+                  <th>Quantity</th>
+                  <th>Notes</th>
+                  <th className="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={7} className="py-2">
+                      <div className="h-4 w-full rounded bg-brand-light" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : transfers.length === 0 ? (
             <div className="p-6 text-sm text-primary-muted">
               No transfers yet.{" "}
@@ -73,15 +94,15 @@ export default function TransfersPage() {
                       </td>
                       <td>
                         <div className="font-medium text-primary">
-                          {transfer.product ? `${transfer.product.code} — ${transfer.product.name}` : `#${transfer.productId}`}
+                          {transfer.product
+                            ? `${transfer.product.code} — ${transfer.product.name}`
+                            : `#${transfer.productId}`}
                         </div>
                         {transfer.product?.category && (
                           <div className="text-xs text-primary-muted">{transfer.product.category}</div>
                         )}
                       </td>
-                      <td className="text-primary-muted">
-                        {transfer.vehicle?.regNumber ?? "Warehouse"}
-                      </td>
+                      <td className="text-primary-muted">{transfer.vehicle?.regNumber ?? "Warehouse"}</td>
                       <td className="font-semibold">{transfer.quantity.toLocaleString()}</td>
                       <td className="text-primary-muted">{transfer.notes ?? "—"}</td>
                       <td className="text-right">

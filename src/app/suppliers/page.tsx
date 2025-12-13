@@ -47,7 +47,27 @@ export default function SuppliersPage() {
 
         <NexusBlock className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-6 text-sm text-primary-muted">Loading suppliers...</div>
+            <table className="nexus-table min-w-[900px]">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Contact</th>
+                  <th>Spares</th>
+                  <th>Location</th>
+                  <th>Specialty</th>
+                  <th className="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={6} className="py-2">
+                      <div className="h-4 w-full rounded bg-brand-light" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : suppliers.length === 0 ? (
             <div className="p-6 text-sm text-primary-muted">
               No suppliers yet.{" "}

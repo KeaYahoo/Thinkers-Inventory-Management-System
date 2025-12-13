@@ -1,23 +1,31 @@
 'use client';
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Bell, Package, Repeat, Truck } from "lucide-react";
 import { ProductTable } from "@/components/ProductTable";
 import { NexusBlock } from "@/components/NexusBlock";
-import { useProducts } from "@/hooks/useProducts";
+import Modal from "@/components/Modal";
+import ProductForm from "@/components/ProductForm";
+import SummaryCard from "@/components/SummaryCard";
+import { useProduct, useProducts } from "@/hooks/useProducts";
 import { useLowStockAlerts } from "@/hooks/useLowStockAlerts";
 import { useTransfers } from "@/hooks/useTransfers";
 import { useVehicles } from "@/hooks/useVehicles";
 import { useUI } from "@/context/UIContext";
 
 export default function InventoryPage() {
-  const router = useRouter();
-  const { products, isLoading, error, deleteProduct } = useProducts();
+  const { products, isLoading, error, deleteProduct, createProduct, updateProduct } = useProducts();
   const { totalCount, criticalCount, warningCount } = useLowStockAlerts();
   const { transfers } = useTransfers();
   const { vehicles } = useVehicles();
   const { showToast } = useUI();
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const { product: editingProduct, isLoading: editingLoading, error: editingError } = useProduct(
+    editingProductId ?? undefined,
+  );
 
   const handleDelete = async (id: number) => {
     const confirmed = window.confirm("Are you sure you want to delete this product?");
@@ -31,7 +39,7 @@ export default function InventoryPage() {
   };
 
   const handleEdit = (id: number) => {
-    router.push(`/inventory/${id}`);
+    setEditingProductId(id);
   };
 
   return (
@@ -42,9 +50,13 @@ export default function InventoryPage() {
             <p className="text-xs uppercase tracking-widest text-primary-muted">Inventory</p>
             <h1 className="text-3xl font-semibold text-primary">Inventory</h1>
           </div>
-          <Link href="/inventory/new" className="btn-brand focus-ring inline-flex items-center gap-2">
+          <button
+            type="button"
+            className="btn-brand focus-ring inline-flex items-center gap-2"
+            onClick={() => setShowCreateModal(true)}
+          >
             + New Product
-          </Link>
+          </button>
         </NexusBlock>
 
         <NexusBlock className="p-6 sm:p-8">
@@ -86,28 +98,45 @@ export default function InventoryPage() {
           createLabel="Add one"
         />
       </div>
+
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="New product"
+      >
+        <ProductForm
+          onSubmit={async (values) => {
+            await createProduct(values);
+            setShowCreateModal(false);
+            showToast("Product created", "success");
+          }}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={editingProductId !== null}
+        onClose={() => setEditingProductId(null)}
+        title="Edit product"
+      >
+        {editingLoading ? (
+          <div className="text-sm text-primary-muted">Loading product...</div>
+        ) : editingError ? (
+          <div className="text-sm text-red-600" role="alert">
+            {editingError.message}
+          </div>
+        ) : editingProduct ? (
+          <ProductForm
+            initialData={editingProduct}
+            onSubmit={async (values) => {
+              await updateProduct(editingProduct.id, values);
+              setEditingProductId(null);
+              showToast("Product updated", "success");
+            }}
+          />
+        ) : (
+          <div className="text-sm text-primary-muted">Select a product to edit.</div>
+        )}
+      </Modal>
     </main>
-  );
-}
-
-type SummaryCardProps = {
-  icon: typeof Package;
-  label: string;
-  value: number;
-};
-
-function SummaryCard({ icon: Icon, label, value }: SummaryCardProps) {
-  return (
-    <div className="rounded-2xl border border-border-subtle bg-brand-light p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="text-2xl font-semibold text-primary">{value.toLocaleString()}</div>
-          <div className="mt-1 text-xs uppercase tracking-widest text-primary-muted">{label}</div>
-        </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-brand shadow-sm">
-          <Icon size={18} aria-hidden />
-        </div>
-      </div>
-    </div>
   );
 }

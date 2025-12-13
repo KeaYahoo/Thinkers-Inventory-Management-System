@@ -40,7 +40,7 @@ export default function TopNav() {
   return (
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-4">
-        <Link href="/" className="flex shrink-0 items-center gap-3">
+        <Link href="/" className="flex shrink-0 items-center gap-3" aria-label="Go to dashboard">
           <Image
             src="/images/thinkers-logo.png"
             alt="Thinkers Afrika IMS"
@@ -58,7 +58,9 @@ export default function TopNav() {
               <Link
                 key={href}
                 href={href}
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition ${
+                aria-label={label}
+                aria-current={active ? "page" : undefined}
+                className={`focus-ring inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition ${
                   active
                     ? "bg-brand-light text-brand shadow-sm"
                     : "text-primary-muted hover:bg-brand-light/60 hover:text-primary"
@@ -82,4 +84,3 @@ export default function TopNav() {
     </header>
   );
 }
-
