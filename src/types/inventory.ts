@@ -25,3 +25,14 @@ export type Consumption = {
   date: string;
   product?: Product;
 };
+
+export type Supplier = {
+  id: number;
+  name: string;
+  contact: string;
+  spares: string;
+  location: string;
+  specialty: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
