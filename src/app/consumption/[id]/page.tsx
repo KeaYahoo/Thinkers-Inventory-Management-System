@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { NexusBlock } from "@/components/NexusBlock";
 import { useProducts } from "@/hooks/useProducts";
 import { useConsumption, useConsumptionRecord } from "@/hooks/useConsumption";
+import { useVehicles } from "@/hooks/useVehicles";
 import { useUI } from "@/context/UIContext";
 
 type PageProps = {
@@ -15,6 +16,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
   const { products, isLoading: productsLoading, error: productsError } = useProducts();
+  const { vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
   const { record, isLoading: recordLoading, error: recordError } = useConsumptionRecord(id);
   const { updateConsumption } = useConsumption();
   const { showToast } = useUI();
@@ -23,6 +25,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
     productId: "",
     quantity: 0,
     type: "internal",
+    vehicleId: "",
     consumer: "",
     date: new Date().toISOString().split("T")[0],
   });
@@ -35,6 +38,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
       productId: record.productId.toString(),
       quantity: record.quantity,
       type: record.type,
+      vehicleId: record.vehicleId ? record.vehicleId.toString() : "",
       consumer: record.consumer,
       date: record.date.slice(0, 10),
     });
@@ -60,6 +64,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
       const payload = {
         ...form,
         productId: Number(form.productId),
+        vehicleId: form.vehicleId ? Number(form.vehicleId) : null,
       };
 
       await updateConsumption(Number(id), payload);
@@ -73,8 +78,8 @@ export default function EditConsumptionPage({ params }: PageProps) {
     }
   };
 
-  const loading = productsLoading || recordLoading;
-  const combinedError = productsError ?? recordError;
+  const loading = productsLoading || recordLoading || vehiclesLoading;
+  const combinedError = productsError ?? recordError ?? vehiclesError;
 
   if (loading) {
     return (
@@ -150,6 +155,24 @@ export default function EditConsumptionPage({ params }: PageProps) {
           </label>
 
           <label className="text-xs font-medium text-primary-muted sm:col-span-2">
+            Vehicle (optional)
+            <select
+              name="vehicleId"
+              value={form.vehicleId}
+              onChange={handleChange}
+              disabled={vehiclesLoading}
+              className="nexus-input focus-ring mt-1"
+            >
+              <option value="">No vehicle</option>
+              {vehicles.map((vehicle) => (
+                <option key={vehicle.id} value={vehicle.id}>
+                  {vehicle.regNumber}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Consumer
             <input
               name="consumer"
@@ -182,4 +205,3 @@ export default function EditConsumptionPage({ params }: PageProps) {
     </main>
   );
 }
-

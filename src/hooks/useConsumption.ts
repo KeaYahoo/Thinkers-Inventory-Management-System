@@ -20,7 +20,7 @@ const fetcher = async <T,>(url: string): Promise<T> => {
   return payload as T;
 };
 
-type ConsumptionInput = Omit<Consumption, "id" | "product">;
+type ConsumptionInput = Omit<Consumption, "id" | "product" | "vehicle">;
 
 export function useConsumption() {
   const { data, error, mutate, isLoading } = useSWR<Consumption[]>(

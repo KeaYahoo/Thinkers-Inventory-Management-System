@@ -1,14 +1,13 @@
 'use client';
 
 import Link from "next/link";
-import { Bell, Download, Package, Truck, Repeat } from "lucide-react";
+import useSWR from "swr";
+import { useMemo, useState } from "react";
+import { Bell, Download, Package } from "lucide-react";
 import { NexusBlock } from "@/components/NexusBlock";
 import SummaryCard from "@/components/SummaryCard";
 import { StatusPill } from "@/components/StatusPill";
-import { useLowStockAlerts } from "@/hooks/useLowStockAlerts";
-import { useProducts } from "@/hooks/useProducts";
-import { useTransfers } from "@/hooks/useTransfers";
-import { useVehicles } from "@/hooks/useVehicles";
+import type { Product } from "@/types/inventory";
 
 function getStockTone(remaining: number, minStock: number): "success" | "warning" | "critical" {
   if (remaining <= 0) return "critical";
@@ -25,16 +24,58 @@ function getStockLabel(remaining: number, minStock: number): string {
 const currency = (value: number) =>
   new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR", maximumFractionDigits: 0 }).format(value);
 
+type CategoryCount = { category: string; count: number };
+
+const getPayloadError = (payload: unknown): string | undefined => {
+  if (payload && typeof payload === "object" && "error" in payload) {
+    const value = (payload as Record<string, unknown>).error;
+    if (typeof value === "string") return value;
+  }
+  return undefined;
+};
+
+const fetcher = async <T,>(url: string): Promise<T> => {
+  const response = await fetch(url);
+  const payload: unknown = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(getPayloadError(payload) ?? `Request failed: ${response.status}`);
+  }
+  return payload as T;
+};
+
+const buildQueryString = (filters: { category?: string; from?: string; to?: string }) => {
+  const params = new URLSearchParams();
+  if (filters.category) params.set("category", filters.category);
+  if (filters.from) params.set("from", filters.from);
+  if (filters.to) params.set("to", filters.to);
+  const query = params.toString();
+  return query ? `?${query}` : "";
+};
+
 export default function InventoryReportPage() {
-  const { products, isLoading, error } = useProducts();
-  const { totalCount: lowStockCount, criticalCount } = useLowStockAlerts();
-  const { transfers } = useTransfers();
-  const { vehicles } = useVehicles();
+  const [category, setCategory] = useState<string>("");
+  const [from, setFrom] = useState<string>("");
+  const [to, setTo] = useState<string>("");
+
+  const queryString = useMemo(
+    () =>
+      buildQueryString({
+        category: category || undefined,
+        from: from || undefined,
+        to: to || undefined,
+      }),
+    [category, from, to],
+  );
+
+  const { data: categories = [] } = useSWR<CategoryCount[]>("/api/analytics/categories", fetcher);
+  const { data: products = [], isLoading, error } = useSWR<Product[]>(`/api/products${queryString}`, fetcher);
 
   const totalUnits = products.reduce((sum, product) => sum + (product.remaining ?? 0), 0);
+  const lowStockCount = products.filter((product) => product.remaining <= product.minStock).length;
+  const criticalCount = products.filter((product) => product.remaining <= 0).length;
 
   const downloadPdf = () => {
-    window.location.href = "/api/reports/inventory/pdf";
+    window.location.href = `/api/reports/inventory/pdf${queryString}`;
   };
 
   return (
@@ -53,29 +94,70 @@ export default function InventoryReportPage() {
               </Link>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={downloadPdf}
-            aria-label="Download inventory report PDF"
-            className="btn-brand focus-ring inline-flex items-center gap-2"
-          >
-            <Download size={16} aria-hidden />
-            Download PDF
-          </button>
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-primary-muted">Category</label>
+              <select
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                className="mt-1 w-56 rounded-xl border border-border-subtle bg-surface px-3 py-2 text-sm text-primary focus-ring"
+              >
+                <option value="">All categories</option>
+                {categories.map((item) => (
+                  <option key={item.category} value={item.category}>
+                    {item.category}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-primary-muted">From</label>
+              <input
+                type="date"
+                value={from}
+                onChange={(event) => setFrom(event.target.value)}
+                className="mt-1 w-40 rounded-xl border border-border-subtle bg-surface px-3 py-2 text-sm text-primary focus-ring"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-primary-muted">To</label>
+              <input
+                type="date"
+                value={to}
+                onChange={(event) => setTo(event.target.value)}
+                className="mt-1 w-40 rounded-xl border border-border-subtle bg-surface px-3 py-2 text-sm text-primary focus-ring"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={downloadPdf}
+              aria-label="Download inventory report PDF"
+              className="btn-brand focus-ring inline-flex items-center gap-2"
+            >
+              <Download size={16} aria-hidden />
+              Download PDF
+            </button>
+          </div>
         </NexusBlock>
 
         <NexusBlock className="p-6 sm:p-8">
           <p className="text-xs uppercase tracking-widest text-primary-muted">Summary</p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <SummaryCard icon={Package} label="Total products" value={products.length} />
             <SummaryCard icon={Bell} label="Low-stock items" value={lowStockCount} />
             <SummaryCard icon={Bell} label="Out of stock" value={criticalCount} />
-            <SummaryCard icon={Repeat} label="Transfers" value={transfers.length} />
-            <SummaryCard icon={Truck} label="Vehicles" value={vehicles.length} />
           </div>
           <div className="mt-4 text-sm text-primary-muted">
             Total remaining units: <span className="font-semibold text-primary">{totalUnits.toLocaleString()}</span>
           </div>
+          {(category || from || to) && (
+            <div className="mt-3 text-sm text-primary-muted">
+              Filters:{" "}
+              <span className="font-semibold text-primary">
+                {category || "All categories"} · {from || "Any"} - {to || "Any"}
+              </span>
+            </div>
+          )}
         </NexusBlock>
 
         {error && (
@@ -137,4 +219,3 @@ export default function InventoryReportPage() {
     </main>
   );
 }
-

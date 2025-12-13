@@ -126,6 +126,16 @@ const styles = StyleSheet.create({
   footerNote: { marginTop: 10, fontSize: 9, color: COLORS.muted },
 });
 
+const chunk = <T,>(items: T[], size: number) => {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+};
+
+const ROWS_PER_PAGE = 18;
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-ZA", {
     style: "currency",
@@ -146,90 +156,108 @@ export default function InventoryReportPDF({
   generatedAt,
   logoSrc,
 }: InventoryReportPDFProps) {
+  const pages = chunk(products, ROWS_PER_PAGE);
+  const safePages = pages.length ? pages : [[]];
+
   return (
     <Document title="Inventory Report" author="Thinkers Afrika IMS">
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {logoSrc ? (
-              <View style={{ marginRight: 10 }}>
-                <PdfImage src={logoSrc} style={styles.logo} />
-              </View>
-            ) : null}
-            <View>
-              <Text style={styles.title}>Inventory Report</Text>
-              <Text style={styles.subtitle}>Thinkers Afrika Inventory Management System</Text>
-            </View>
-          </View>
-          <Text style={styles.generatedAt}>Generated: {generatedAt}</Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Summary</Text>
-          <View style={styles.summaryRow}>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>Total products</Text>
-              <Text style={styles.summaryValue}>{summary.totalProducts.toLocaleString()}</Text>
-            </View>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>Low stock</Text>
-              <Text style={styles.summaryValue}>{summary.lowStockCount.toLocaleString()}</Text>
-            </View>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>Out of stock</Text>
-              <Text style={styles.summaryValue}>{summary.outOfStockCount.toLocaleString()}</Text>
-            </View>
-            <View style={[styles.summaryCard, { marginRight: 0 }]}>
-              <Text style={styles.summaryLabel}>Remaining units</Text>
-              <Text style={styles.summaryValue}>{summary.totalRemainingUnits.toLocaleString()}</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Product details</Text>
-          <View style={styles.table}>
-            <View style={styles.tableHeaderRow}>
-              <Text style={[styles.tableHeaderCell, styles.cell, styles.code]}>Code</Text>
-              <Text style={[styles.tableHeaderCell, styles.cell, styles.name]}>Product</Text>
-              <Text style={[styles.tableHeaderCell, styles.cell, styles.category]}>Category</Text>
-              <Text style={[styles.tableHeaderCell, styles.cell, styles.remaining]}>Rem/Min</Text>
-              <Text style={[styles.tableHeaderCell, styles.cell, styles.cost]}>Cost</Text>
-              <Text style={[styles.tableHeaderCell, styles.cell, styles.selling]}>Sell</Text>
-              <Text style={[styles.tableHeaderCell, styles.status]}>Status</Text>
-            </View>
-
-            {products.map((product, index) => {
-              const status = getStatus(product.remaining, product.minStock);
-              const rowStyle = index === products.length - 1 ? [styles.tableRow, { borderBottomWidth: 0 }] : styles.tableRow;
-              return (
-                <View key={product.id} style={rowStyle}>
-                  <Text style={[styles.cell, styles.code]}>{product.code}</Text>
-                  <View style={[styles.cell, styles.name]}>
-                    <Text style={{ fontWeight: 700 }}>{product.name}</Text>
-                    {product.description ? (
-                      <Text style={{ marginTop: 2, fontSize: 9, color: COLORS.muted }}>{product.description}</Text>
-                    ) : null}
-                  </View>
-                  <Text style={[styles.cell, styles.category]}>{product.category}</Text>
-                  <Text style={[styles.cell, styles.remaining]}>
-                    {product.remaining} / {product.minStock}
-                  </Text>
-                  <Text style={[styles.cell, styles.cost]}>{formatCurrency(product.cost)}</Text>
-                  <Text style={[styles.cell, styles.selling]}>{formatCurrency(product.sellingPrice)}</Text>
-                  <View style={styles.status}>
-                    <Text style={[styles.statusPill, { backgroundColor: status.color }]}>{status.label}</Text>
-                  </View>
+      {safePages.map((pageProducts, pageIndex) => (
+        <Page key={pageIndex} size="A4" style={styles.page}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              {logoSrc ? (
+                <View style={{ marginRight: 10 }}>
+                  <PdfImage src={logoSrc} style={styles.logo} />
                 </View>
-              );
-            })}
+              ) : null}
+              <View>
+                <Text style={styles.title}>Inventory Report</Text>
+                <Text style={styles.subtitle}>Thinkers Afrika Inventory Management System</Text>
+              </View>
+            </View>
+            <Text style={styles.generatedAt}>Generated: {generatedAt}</Text>
           </View>
 
-          <Text style={styles.footerNote}>
-            Low-stock items are flagged when remaining units are less than or equal to the minimum stock threshold.
-          </Text>
-        </View>
-      </Page>
+          {pageIndex === 0 ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Summary</Text>
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryCard}>
+                  <Text style={styles.summaryLabel}>Total products</Text>
+                  <Text style={styles.summaryValue}>{summary.totalProducts.toLocaleString()}</Text>
+                </View>
+                <View style={styles.summaryCard}>
+                  <Text style={styles.summaryLabel}>Low stock</Text>
+                  <Text style={styles.summaryValue}>{summary.lowStockCount.toLocaleString()}</Text>
+                </View>
+                <View style={styles.summaryCard}>
+                  <Text style={styles.summaryLabel}>Out of stock</Text>
+                  <Text style={styles.summaryValue}>{summary.outOfStockCount.toLocaleString()}</Text>
+                </View>
+                <View style={[styles.summaryCard, { marginRight: 0 }]}>
+                  <Text style={styles.summaryLabel}>Remaining units</Text>
+                  <Text style={styles.summaryValue}>{summary.totalRemainingUnits.toLocaleString()}</Text>
+                </View>
+              </View>
+            </View>
+          ) : null}
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Product details</Text>
+            <View style={styles.table}>
+              <View style={styles.tableHeaderRow}>
+                <Text style={[styles.tableHeaderCell, styles.cell, styles.code]}>Code</Text>
+                <Text style={[styles.tableHeaderCell, styles.cell, styles.name]}>Product</Text>
+                <Text style={[styles.tableHeaderCell, styles.cell, styles.category]}>Category</Text>
+                <Text style={[styles.tableHeaderCell, styles.cell, styles.remaining]}>Rem/Min</Text>
+                <Text style={[styles.tableHeaderCell, styles.cell, styles.cost]}>Cost</Text>
+                <Text style={[styles.tableHeaderCell, styles.cell, styles.selling]}>Sell</Text>
+                <Text style={[styles.tableHeaderCell, styles.status]}>Status</Text>
+              </View>
+
+              {pageProducts.length ? (
+                pageProducts.map((product, index) => {
+                  const status = getStatus(product.remaining, product.minStock);
+                  const rowStyle =
+                    index === pageProducts.length - 1 ? [styles.tableRow, { borderBottomWidth: 0 }] : styles.tableRow;
+                  return (
+                    <View key={product.id} style={rowStyle}>
+                      <Text style={[styles.cell, styles.code]}>{product.code}</Text>
+                      <View style={[styles.cell, styles.name]}>
+                        <Text style={{ fontWeight: 700 }}>{product.name}</Text>
+                        {product.description ? (
+                          <Text style={{ marginTop: 2, fontSize: 9, color: COLORS.muted }}>
+                            {product.description}
+                          </Text>
+                        ) : null}
+                      </View>
+                      <Text style={[styles.cell, styles.category]}>{product.category}</Text>
+                      <Text style={[styles.cell, styles.remaining]}>
+                        {product.remaining} / {product.minStock}
+                      </Text>
+                      <Text style={[styles.cell, styles.cost]}>{formatCurrency(product.cost)}</Text>
+                      <Text style={[styles.cell, styles.selling]}>{formatCurrency(product.sellingPrice)}</Text>
+                      <View style={styles.status}>
+                        <Text style={[styles.statusPill, { backgroundColor: status.color }]}>{status.label}</Text>
+                      </View>
+                    </View>
+                  );
+                })
+              ) : (
+                <View style={{ padding: 12 }}>
+                  <Text style={{ color: COLORS.muted }}>No products found.</Text>
+                </View>
+              )}
+            </View>
+
+            {pageIndex === safePages.length - 1 ? (
+              <Text style={styles.footerNote}>
+                Low-stock items are flagged when remaining units are less than or equal to the minimum stock threshold.
+              </Text>
+            ) : null}
+          </View>
+        </Page>
+      ))}
     </Document>
   );
 }

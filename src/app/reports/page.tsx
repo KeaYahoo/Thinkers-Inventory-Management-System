@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { FileText, Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { NexusBlock } from "@/components/NexusBlock";
 import { useLowStockAlerts } from "@/hooks/useLowStockAlerts";
 import { useProducts } from "@/hooks/useProducts";
@@ -91,11 +91,11 @@ export default function ReportsIndexPage() {
 
           <div className="mt-4 text-sm text-primary-muted">
             <span className="font-semibold text-primary">{products.length}</span> products
-            <span aria-hidden> • </span>
+            <span aria-hidden> &middot; </span>
             <span className="font-semibold text-primary">{totalCount}</span> low-stock alerts
-            <span aria-hidden> • </span>
+            <span aria-hidden> &middot; </span>
             <span className="font-semibold text-primary">{vehicles.length}</span> vehicles
-            <span aria-hidden> • </span>
+            <span aria-hidden> &middot; </span>
             <span className="font-semibold text-primary">{transfers.length}</span> transfers
           </div>
         </NexusBlock>
@@ -110,12 +110,19 @@ export default function ReportsIndexPage() {
           <ReportCard
             title="Vehicle Report"
             description="Stock and activity by vehicle (logs, on-road inventory)."
-            disabled
+            viewHref="/reports/vehicle"
+            downloadHref="/api/reports/vehicle/pdf"
           />
           <ReportCard
             title="Consumption Report"
             description="Usage analysis by type, consumer, and time period."
-            disabled
+            viewHref="/reports/consumption"
+            downloadHref="/api/reports/consumption/pdf"
+          />
+          <ReportCard
+            title="Night Shift Report"
+            description="Shift checklists, summaries, incidents and compliance tracking."
+            viewHref="/nightshift"
           />
         </div>
       </div>

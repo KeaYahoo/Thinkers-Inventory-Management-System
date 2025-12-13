@@ -43,6 +43,8 @@ model Consumption {
   id        Int      @id @default(autoincrement())
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId Int
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  vehicleId Int?
   quantity  Int
   type      String
   consumer  String
@@ -70,7 +72,22 @@ model Vehicle {
   updatedAt   DateTime     @updatedAt
   logs        VehicleLog[]
   stock       VehicleStock[]
+  consumption Consumption[]
+  nightShiftReports NightShiftReport[]
   transfers   Transfer[]
+}
+
+model NightShiftReport {
+  id            Int      @id @default(autoincrement())
+  date          DateTime
+  vehicle       Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  vehicleId     Int?
+  staff         String
+  shiftSummary  String
+  incidents     String?
+  nonCompliance String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model VehicleLog {

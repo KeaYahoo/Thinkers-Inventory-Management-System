@@ -1,36 +1,26 @@
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
-import fs from "node:fs/promises";
-import path from "node:path";
 import { prisma } from "@/lib/prisma";
+import { getFriendlyDbError, parseDateRange, readLogoDataUri } from "@/lib/reporting";
 import InventoryReportPDF from "@/components/reports/InventoryReportPDF";
 
 export const runtime = "nodejs";
 
-function getPrismaFriendlyMessage(error: unknown) {
-  if (!(error instanceof Error)) return null;
-  const message = error.message.toLowerCase();
-  if (error.name === "PrismaClientInitializationError" || message.includes("prisma")) {
-    return "Database connection or migration error; check DATABASE_URL and run prisma migrate dev.";
-  }
-  return null;
-}
-
-async function readLogoDataUri() {
-  const logoPath = path.join(process.cwd(), "public", "images", "thinkers-logo.png");
+export async function GET(request: Request) {
   try {
-    const file = await fs.readFile(logoPath);
-    return `data:image/png;base64,${file.toString("base64")}`;
-  } catch (error) {
-    console.warn("[REPORT_INVENTORY_PDF] Failed to read logo:", error);
-    return undefined;
-  }
-}
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get("category")?.trim();
+    const { from, to, error: dateError } = parseDateRange(searchParams);
+    if (dateError) {
+      return NextResponse.json({ error: dateError }, { status: 400 });
+    }
 
-export async function GET() {
-  try {
     const products = await prisma.product.findMany({
       orderBy: { name: "asc" },
+      where: {
+        ...(category ? { category } : {}),
+        ...(from || to ? { purchaseDate: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } } : {}),
+      },
       select: {
         id: true,
         code: true,
@@ -74,7 +64,9 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[REPORT_INVENTORY_PDF]", error);
-    const message = getPrismaFriendlyMessage(error) ?? "Failed to generate inventory report PDF";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: getFriendlyDbError(error, "Failed to generate inventory report PDF") },
+      { status: 500 },
+    );
   }
 }

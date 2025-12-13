@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { NexusBlock } from "@/components/NexusBlock";
 import { useProducts } from "@/hooks/useProducts";
 import { useConsumption } from "@/hooks/useConsumption";
+import { useVehicles } from "@/hooks/useVehicles";
 import { useUI } from "@/context/UIContext";
 
 const initialState = {
   productId: "",
   quantity: 0,
   type: "internal",
+  vehicleId: "",
   consumer: "",
   date: new Date().toISOString().split("T")[0],
 };
@@ -18,6 +20,7 @@ const initialState = {
 export default function NewConsumptionPage() {
   const router = useRouter();
   const { products, isLoading: loadingProducts, error: productsError } = useProducts();
+  const { vehicles, isLoading: loadingVehicles, error: vehiclesError } = useVehicles();
   const { createConsumption } = useConsumption();
   const { showToast } = useUI();
   const [form, setForm] = useState(initialState);
@@ -44,6 +47,7 @@ export default function NewConsumptionPage() {
       const payload = {
         ...form,
         productId: Number(form.productId),
+        vehicleId: form.vehicleId ? Number(form.vehicleId) : null,
       };
 
       await createConsumption(payload);
@@ -67,6 +71,12 @@ export default function NewConsumptionPage() {
         {(error || productsError) && (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
             {error ?? productsError?.message}
+          </div>
+        )}
+
+        {vehiclesError && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+            {vehiclesError.message}
           </div>
         )}
 
@@ -117,6 +127,24 @@ export default function NewConsumptionPage() {
           </label>
 
           <label className="text-xs font-medium text-primary-muted sm:col-span-2">
+            Vehicle (optional)
+            <select
+              name="vehicleId"
+              value={form.vehicleId}
+              onChange={handleChange}
+              disabled={loadingVehicles}
+              className="nexus-input focus-ring mt-1"
+            >
+              <option value="">No vehicle</option>
+              {vehicles.map((vehicle) => (
+                <option key={vehicle.id} value={vehicle.id}>
+                  {vehicle.regNumber}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Consumer
             <input
               name="consumer"
@@ -150,4 +178,3 @@ export default function NewConsumptionPage() {
     </main>
   );
 }
-

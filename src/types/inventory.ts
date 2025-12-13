@@ -19,11 +19,13 @@ export type Product = {
 export type Consumption = {
   id: number;
   productId: number;
+  vehicleId?: number | null;
   quantity: number;
   type: string;
   consumer: string;
   date: string;
   product?: Product;
+  vehicle?: Vehicle;
 };
 
 export type Supplier = {
@@ -77,5 +79,18 @@ export type Transfer = {
   notes?: string;
   date: string;
   product?: Product;
+  vehicle?: Vehicle;
+};
+
+export type NightShiftReport = {
+  id: number;
+  date: string;
+  vehicleId?: number | null;
+  staff: string;
+  shiftSummary: string;
+  incidents?: string | null;
+  nonCompliance?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
   vehicle?: Vehicle;
 };
