@@ -67,3 +67,15 @@ export type VehicleStock = {
   updatedAt?: string;
   product?: Product;
 };
+
+export type Transfer = {
+  id: number;
+  productId: number;
+  vehicleId?: number | null;
+  quantity: number;
+  direction: "TO_VEHICLE" | "FROM_VEHICLE";
+  notes?: string;
+  date: string;
+  product?: Product;
+  vehicle?: Vehicle;
+};

@@ -13,6 +13,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TransferDirection {
+  TO_VEHICLE
+  FROM_VEHICLE
+}
+
 model Product {
   id           Int           @id @default(autoincrement())
   code         String        @unique
@@ -31,6 +36,7 @@ model Product {
   updatedAt    DateTime      @updatedAt
   consumption  Consumption[]
   vehicleStock VehicleStock[]
+  transfers    Transfer[]
 }
 
 model Consumption {
@@ -64,6 +70,7 @@ model Vehicle {
   updatedAt   DateTime     @updatedAt
   logs        VehicleLog[]
   stock       VehicleStock[]
+  transfers   Transfer[]
 }
 
 model VehicleLog {
@@ -90,4 +97,18 @@ model VehicleStock {
   updatedAt DateTime @updatedAt
 
   @@unique([vehicleId, productId])
+}
+
+model Transfer {
+  id        Int               @id @default(autoincrement())
+  product   Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int
+  vehicle   Vehicle?          @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId Int?
+  quantity  Int
+  direction TransferDirection
+  notes     String?
+  date      DateTime          @default(now())
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 }
