@@ -19,6 +19,10 @@ export default function VehiclesPage() {
     router.push(`/vehicles/${id}/logs`);
   };
 
+  const handleViewStock = (id: number) => {
+    router.push(`/vehicles/${id}/stock`);
+  };
+
   const handleDelete = async (id: number) => {
     const confirmed = window.confirm("Delete this vehicle and all its logs?");
     if (!confirmed) return;
@@ -78,6 +82,13 @@ export default function VehiclesPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
+                          onClick={() => handleViewStock(vehicle.id)}
+                          className="rounded-full border border-border-subtle px-3 py-1 text-xs font-semibold text-primary transition hover:bg-canvas"
+                        >
+                          Stock
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleViewLogs(vehicle.id)}
                           className="rounded-full border border-border-subtle px-3 py-1 text-xs font-semibold text-primary transition hover:bg-canvas"
                         >
@@ -109,4 +120,3 @@ export default function VehiclesPage() {
     </main>
   );
 }
-

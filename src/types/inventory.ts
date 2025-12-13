@@ -57,3 +57,13 @@ export type VehicleLog = {
   updatedAt?: string;
   vehicle?: Vehicle;
 };
+
+export type VehicleStock = {
+  id: number;
+  vehicleId: number;
+  productId: number;
+  quantity: number;
+  createdAt?: string;
+  updatedAt?: string;
+  product?: Product;
+};

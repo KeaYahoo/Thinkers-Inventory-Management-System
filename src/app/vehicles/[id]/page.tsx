@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, use } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { NexusBlock } from "@/components/NexusBlock";
 import { useVehicle, useVehicles } from "@/hooks/useVehicles";
@@ -84,6 +85,21 @@ export default function EditVehiclePage({ params }: PageProps) {
         <h1 className="text-3xl font-semibold text-primary">Edit vehicle</h1>
         <p className="text-sm text-primary-muted">Update vehicle details below.</p>
 
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            href={`/vehicles/${id}/stock`}
+            className="rounded-full border border-border-subtle px-4 py-2 text-xs font-semibold text-primary transition hover:bg-canvas"
+          >
+            View Stock
+          </Link>
+          <Link
+            href={`/vehicles/${id}/logs`}
+            className="rounded-full border border-border-subtle px-4 py-2 text-xs font-semibold text-primary transition hover:bg-canvas"
+          >
+            View Logs
+          </Link>
+        </div>
+
         {error && (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
             {error}
@@ -127,4 +143,3 @@ function InputField({ label, name, className, ...rest }: FieldProps) {
     </label>
   );
 }
-

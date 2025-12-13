@@ -5,36 +5,33 @@ import { useRouter } from "next/navigation";
 import { use } from "react";
 import { NexusBlock } from "@/components/NexusBlock";
 import { useVehicle } from "@/hooks/useVehicles";
-import { useVehicleLogs } from "@/hooks/useVehicleLogs";
+import { useVehicleStock } from "@/hooks/useVehicleStock";
 import { useUI } from "@/context/UIContext";
 
 type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-const formatMoney = (value: number) =>
-  new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR", maximumFractionDigits: 0 }).format(value);
-
-export default function VehicleLogsPage({ params }: PageProps) {
+export default function VehicleStockPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
   const vehicleId = Number(id);
   const { vehicle } = useVehicle(id);
-  const { logs, isLoading, error, deleteVehicleLog } = useVehicleLogs(vehicleId);
+  const { stockItems, isLoading, error, deleteVehicleStock } = useVehicleStock(vehicleId);
   const { showToast } = useUI();
 
-  const handleEdit = (logId: number) => {
-    router.push(`/vehiclelogs/${logId}`);
+  const handleEdit = (stockId: number) => {
+    router.push(`/vehiclestock/${stockId}`);
   };
 
-  const handleDelete = async (logId: number) => {
-    const confirmed = window.confirm("Delete this log entry?");
+  const handleDelete = async (stockId: number) => {
+    const confirmed = window.confirm("Remove this item from the vehicle stock?");
     if (!confirmed) return;
     try {
-      await deleteVehicleLog(logId);
-      showToast("Log deleted", "success");
+      await deleteVehicleStock(stockId);
+      showToast("Stock item removed", "success");
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to delete log", "critical");
+      showToast(err instanceof Error ? err.message : "Failed to remove stock item", "critical");
     }
   };
 
@@ -45,18 +42,19 @@ export default function VehicleLogsPage({ params }: PageProps) {
           <div>
             <p className="text-xs uppercase tracking-widest text-primary-muted">Fleet</p>
             <h1 className="text-3xl font-semibold text-primary">
-              {vehicle ? `${vehicle.regNumber} logs` : "Vehicle logs"}
+              {vehicle ? `${vehicle.regNumber} stock` : "Vehicle stock"}
             </h1>
+            <p className="text-sm text-primary-muted">On-road inventory currently assigned to this vehicle.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
-              href={`/vehicles/${id}/stock`}
+              href={`/vehicles/${id}/logs`}
               className="rounded-full border border-border-subtle px-4 py-2 text-xs font-semibold text-primary transition hover:bg-canvas"
             >
-              View Stock
+              View Logs
             </Link>
-            <Link href={`/vehicles/${id}/logs/new`} className="btn-brand focus-ring inline-flex items-center gap-2">
-              + New Log
+            <Link href={`/vehicles/${id}/stock/new`} className="btn-brand focus-ring inline-flex items-center gap-2">
+              + Add Stock
             </Link>
           </div>
         </NexusBlock>
@@ -69,47 +67,46 @@ export default function VehicleLogsPage({ params }: PageProps) {
 
         <NexusBlock className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-6 text-sm text-primary-muted">Loading logs...</div>
-          ) : logs.length === 0 ? (
+            <div className="p-6 text-sm text-primary-muted">Loading stock...</div>
+          ) : stockItems.length === 0 ? (
             <div className="p-6 text-sm text-primary-muted">
-              No logs yet.{" "}
-              <Link href={`/vehicles/${id}/logs/new`} className="text-brand underline">
+              No on-road stock yet.{" "}
+              <Link href={`/vehicles/${id}/stock/new`} className="text-brand underline">
                 Add one
               </Link>
               .
             </div>
           ) : (
-            <table className="nexus-table min-w-[980px]">
+            <table className="nexus-table min-w-[860px]">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Location</th>
-                  <th>Litres</th>
-                  <th>Cost</th>
-                  <th>Trip details</th>
+                  <th>Product</th>
+                  <th>Quantity</th>
                   <th className="text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log) => (
-                  <tr key={log.id} className="text-sm">
-                    <td>{new Date(log.date).toLocaleDateString()}</td>
-                    <td>{log.location}</td>
-                    <td>{log.liters.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                    <td>{formatMoney(log.cost)}</td>
-                    <td className="text-primary-muted">{log.tripDetails ?? "—"}</td>
+                {stockItems.map((item) => (
+                  <tr key={item.id} className="text-sm">
+                    <td>
+                      <div className="font-semibold text-primary">{item.product?.name ?? `Product #${item.productId}`}</div>
+                      {item.product?.code && (
+                        <div className="text-xs text-primary-muted">{item.product.code}</div>
+                      )}
+                    </td>
+                    <td className="font-semibold">{item.quantity.toLocaleString()}</td>
                     <td className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => handleEdit(log.id)}
+                          onClick={() => handleEdit(item.id)}
                           className="rounded-full border border-border-subtle px-3 py-1 text-xs font-semibold text-brand transition hover:border-brand hover:bg-brand hover:text-white"
                         >
                           Edit
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDelete(log.id)}
+                          onClick={() => handleDelete(item.id)}
                           className="rounded-full border border-red-200 px-3 py-1 text-xs font-semibold text-red-500 transition hover:bg-red-500 hover:text-white"
                         >
                           Delete
@@ -126,3 +123,4 @@ export default function VehicleLogsPage({ params }: PageProps) {
     </main>
   );
 }
+
