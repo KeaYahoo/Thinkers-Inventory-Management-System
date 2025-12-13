@@ -2,7 +2,6 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { Consumption } from "@/types/inventory";
 import { NexusBlock } from "@/components/NexusBlock";
 import { useProducts } from "@/hooks/useProducts";
 import { useConsumption, useConsumptionRecord } from "@/hooks/useConsumption";
@@ -41,9 +40,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
     });
   }, [record]);
 
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setForm((prev) => ({
       ...prev,
@@ -56,17 +53,19 @@ export default function EditConsumptionPage({ params }: PageProps) {
     setSubmitting(true);
     setError(null);
     try {
+      if (form.quantity <= 0) {
+        throw new Error("Quantity must be greater than zero");
+      }
+
       const payload = {
         ...form,
         productId: Number(form.productId),
       };
 
-      const updated = await updateConsumption(Number(id), payload);
+      await updateConsumption(Number(id), payload);
       showToast("Consumption updated", "success");
-
       router.push("/consumption");
       router.refresh();
-      return updated as Consumption;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update entry");
     } finally {
@@ -80,7 +79,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
   if (loading) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8 text-sm text-primary-muted">
+        <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8 text-sm text-primary-muted">
           Loading consumption entry...
         </NexusBlock>
       </main>
@@ -90,7 +89,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
   if (combinedError || !record) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
+        <div className="mx-auto w-full max-w-lg nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
           {combinedError?.message ?? "Consumption not found"}
         </div>
       </main>
@@ -99,7 +98,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8">
+      <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8">
         <p className="text-xs uppercase tracking-widest text-primary-muted">Operational usage</p>
         <h1 className="text-3xl font-semibold text-primary">Edit consumption</h1>
         <p className="text-sm text-primary-muted">Adjust quantities or reassign to a different product.</p>
@@ -110,8 +109,8 @@ export default function EditConsumptionPage({ params }: PageProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <label className="text-xs font-medium text-primary-muted">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Product
             <select
               name="productId"
@@ -123,38 +122,34 @@ export default function EditConsumptionPage({ params }: PageProps) {
               <option value="">Select product</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
-                  {product.code} – {product.name}
+                  {product.code} — {product.name}
                 </option>
               ))}
             </select>
           </label>
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="text-xs font-medium text-primary-muted">
-              Quantity
-              <input
-                type="number"
-                min="1"
-                name="quantity"
-                value={form.quantity}
-                onChange={handleChange}
-                required
-                className="nexus-input focus-ring mt-1"
-              />
-            </label>
-            <label className="text-xs font-medium text-primary-muted">
-              Type
-              <select
-                name="type"
-                value={form.type}
-                onChange={handleChange}
-                className="nexus-input focus-ring mt-1"
-              >
-                <option value="internal">Internal</option>
-                <option value="external">External</option>
-              </select>
-            </label>
-          </div>
+
           <label className="text-xs font-medium text-primary-muted">
+            Quantity
+            <input
+              type="number"
+              min="1"
+              name="quantity"
+              value={form.quantity}
+              onChange={handleChange}
+              required
+              className="nexus-input focus-ring mt-1"
+            />
+          </label>
+
+          <label className="text-xs font-medium text-primary-muted">
+            Type
+            <select name="type" value={form.type} onChange={handleChange} className="nexus-input focus-ring mt-1">
+              <option value="internal">Internal</option>
+              <option value="external">External</option>
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Consumer
             <input
               name="consumer"
@@ -164,6 +159,7 @@ export default function EditConsumptionPage({ params }: PageProps) {
               className="nexus-input focus-ring mt-1"
             />
           </label>
+
           <label className="text-xs font-medium text-primary-muted">
             Date
             <input
@@ -175,9 +171,12 @@ export default function EditConsumptionPage({ params }: PageProps) {
               className="nexus-input focus-ring mt-1"
             />
           </label>
-          <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
-            {submitting ? "Saving..." : "Update entry"}
-          </button>
+
+          <div className="sm:col-span-2">
+            <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
+              {submitting ? "Saving..." : "Update entry"}
+            </button>
+          </div>
         </form>
       </NexusBlock>
     </main>

@@ -55,7 +55,7 @@ export default function EditVehicleStockPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8 text-sm text-primary-muted">
+        <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8 text-sm text-primary-muted">
           Loading stock entry...
         </NexusBlock>
       </main>
@@ -65,7 +65,7 @@ export default function EditVehicleStockPage({ params }: PageProps) {
   if (loadError || !stockEntry) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
+        <div className="mx-auto w-full max-w-lg nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
           {loadError?.message ?? "Stock entry not found"}
         </div>
       </main>
@@ -74,12 +74,10 @@ export default function EditVehicleStockPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8">
+      <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8">
         <p className="text-xs uppercase tracking-widest text-primary-muted">Fleet</p>
         <h1 className="text-3xl font-semibold text-primary">Edit vehicle stock</h1>
-        <p className="text-sm text-primary-muted">
-          {stockEntry.product?.name ?? "Stock item"} — update quantity below.
-        </p>
+        <p className="text-sm text-primary-muted">{stockEntry.product?.name ?? "Stock item"} — update quantity below.</p>
 
         {error && (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
@@ -87,8 +85,8 @@ export default function EditVehicleStockPage({ params }: PageProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <label className="text-xs font-medium text-primary-muted">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Quantity
             <input
               name="quantity"
@@ -98,9 +96,11 @@ export default function EditVehicleStockPage({ params }: PageProps) {
               required
             />
           </label>
-          <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
-            {submitting ? "Saving..." : "Update stock"}
-          </button>
+          <div className="sm:col-span-2">
+            <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
+              {submitting ? "Saving..." : "Update stock"}
+            </button>
+          </div>
         </form>
       </NexusBlock>
     </main>

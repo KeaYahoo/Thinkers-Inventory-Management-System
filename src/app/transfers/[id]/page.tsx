@@ -17,7 +17,7 @@ export default function TransferDetailsPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8 text-sm text-primary-muted">
+        <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8 text-sm text-primary-muted">
           Loading transfer...
         </NexusBlock>
       </main>
@@ -27,7 +27,7 @@ export default function TransferDetailsPage({ params }: PageProps) {
   if (error || !transfer) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
+        <div className="mx-auto w-full max-w-lg nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
           {error?.message ?? "Transfer not found"}
         </div>
       </main>
@@ -38,7 +38,7 @@ export default function TransferDetailsPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
         <NexusBlock className="p-6 sm:p-8">
           <p className="text-xs uppercase tracking-widest text-primary-muted">Operations</p>
           <h1 className="text-3xl font-semibold text-primary">Transfer #{transfer.id}</h1>
@@ -65,7 +65,7 @@ export default function TransferDetailsPage({ params }: PageProps) {
                 </StatusPill>
               </dd>
             </div>
-            <div>
+            <div className="sm:col-span-2">
               <dt className="text-xs uppercase tracking-widest text-primary-muted">Product</dt>
               <dd className="mt-1 text-sm font-semibold text-primary">
                 {transfer.product ? `${transfer.product.code} — ${transfer.product.name}` : `#${transfer.productId}`}
@@ -73,15 +73,13 @@ export default function TransferDetailsPage({ params }: PageProps) {
             </div>
             <div>
               <dt className="text-xs uppercase tracking-widest text-primary-muted">Vehicle</dt>
-              <dd className="mt-1 text-sm font-semibold text-primary">
-                {transfer.vehicle?.regNumber ?? "Warehouse"}
-              </dd>
+              <dd className="mt-1 text-sm font-semibold text-primary">{transfer.vehicle?.regNumber ?? "Warehouse"}</dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-widest text-primary-muted">Quantity</dt>
               <dd className="mt-1 text-sm font-semibold text-primary">{transfer.quantity.toLocaleString()}</dd>
             </div>
-            <div>
+            <div className="sm:col-span-2">
               <dt className="text-xs uppercase tracking-widest text-primary-muted">Notes</dt>
               <dd className="mt-1 text-sm text-primary">{transfer.notes ?? "—"}</dd>
             </div>

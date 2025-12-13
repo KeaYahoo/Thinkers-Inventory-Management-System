@@ -68,7 +68,7 @@ export default function NewVehicleStockPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8">
+      <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8">
         <p className="text-xs uppercase tracking-widest text-primary-muted">Fleet</p>
         <h1 className="text-3xl font-semibold text-primary">
           {vehicle ? `Add stock to ${vehicle.regNumber}` : "Add vehicle stock"}
@@ -81,8 +81,8 @@ export default function NewVehicleStockPage({ params }: PageProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <label className="text-xs font-medium text-primary-muted">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Product
             <select
               name="productId"
@@ -107,18 +107,22 @@ export default function NewVehicleStockPage({ params }: PageProps) {
             </select>
           </label>
 
-          <InputField
-            label="Quantity"
-            name="quantity"
-            value={form.quantity}
-            onChange={handleChange}
-            placeholder="e.g. 5"
-            required
-          />
+          <div className="sm:col-span-2">
+            <InputField
+              label="Quantity"
+              name="quantity"
+              value={form.quantity}
+              onChange={handleChange}
+              placeholder="e.g. 5"
+              required
+            />
+          </div>
 
-          <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
-            {submitting ? "Saving..." : "Add stock"}
-          </button>
+          <div className="sm:col-span-2">
+            <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
+              {submitting ? "Saving..." : "Add stock"}
+            </button>
+          </div>
         </form>
       </NexusBlock>
     </main>
@@ -135,4 +139,3 @@ function InputField({ label, name, className, ...rest }: FieldProps) {
     </label>
   );
 }
-

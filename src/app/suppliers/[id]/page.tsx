@@ -81,7 +81,7 @@ export default function EditSupplierPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8 text-sm text-primary-muted">
+        <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8 text-sm text-primary-muted">
           Loading supplier...
         </NexusBlock>
       </main>
@@ -91,7 +91,7 @@ export default function EditSupplierPage({ params }: PageProps) {
   if (loadError || !supplier) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
+        <div className="mx-auto w-full max-w-lg nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
           {loadError?.message ?? "Supplier not found"}
         </div>
       </main>
@@ -100,7 +100,7 @@ export default function EditSupplierPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8">
+      <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8">
         <p className="text-xs uppercase tracking-widest text-primary-muted">Partners</p>
         <h1 className="text-3xl font-semibold text-primary">Edit supplier</h1>
         <p className="text-sm text-primary-muted">Update supplier details below.</p>
@@ -111,7 +111,7 @@ export default function EditSupplierPage({ params }: PageProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
           <InputField label="Name" name="name" value={form.name} onChange={handleChange} required />
           <InputField label="Contact" name="contact" value={form.contact} onChange={handleChange} required />
           <InputField label="Spares" name="spares" value={form.spares} onChange={handleChange} required />
@@ -123,9 +123,11 @@ export default function EditSupplierPage({ params }: PageProps) {
             onChange={handleChange}
             required
           />
-          <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
-            {submitting ? "Saving..." : "Update supplier"}
-          </button>
+          <div className="sm:col-span-2">
+            <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
+              {submitting ? "Saving..." : "Update supplier"}
+            </button>
+          </div>
         </form>
       </NexusBlock>
     </main>
@@ -144,4 +146,3 @@ function InputField({ label, name, className, ...rest }: FieldProps) {
     </label>
   );
 }
-

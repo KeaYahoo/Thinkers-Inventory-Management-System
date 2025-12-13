@@ -124,7 +124,7 @@ export default function NewTransferPage() {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8">
+      <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8">
         <p className="text-xs uppercase tracking-widest text-primary-muted">Operations</p>
         <h1 className="text-3xl font-semibold text-primary">New transfer</h1>
         <p className="text-sm text-primary-muted">
@@ -137,7 +137,7 @@ export default function NewTransferPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className="text-xs font-medium text-primary-muted">
             Direction
             <select
@@ -172,7 +172,7 @@ export default function NewTransferPage() {
             </select>
           </label>
 
-          <label className="text-xs font-medium text-primary-muted">
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Vehicle
             <select
               name="vehicleId"
@@ -209,7 +209,7 @@ export default function NewTransferPage() {
             />
           </label>
 
-          <label className="text-xs font-medium text-primary-muted">
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Notes (optional)
             <textarea
               name="notes"
@@ -220,9 +220,11 @@ export default function NewTransferPage() {
             />
           </label>
 
-          <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
-            {submitting ? "Saving..." : "Create transfer"}
-          </button>
+          <div className="sm:col-span-2">
+            <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
+              {submitting ? "Saving..." : "Create transfer"}
+            </button>
+          </div>
         </form>
       </NexusBlock>
     </main>

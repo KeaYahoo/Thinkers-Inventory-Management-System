@@ -61,7 +61,7 @@ export default function EditVehiclePage({ params }: PageProps) {
   if (isLoading) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8 text-sm text-primary-muted">
+        <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8 text-sm text-primary-muted">
           Loading vehicle...
         </NexusBlock>
       </main>
@@ -71,7 +71,7 @@ export default function EditVehiclePage({ params }: PageProps) {
   if (loadError || !vehicle) {
     return (
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
+        <div className="mx-auto w-full max-w-lg nexus-block border-red-200 bg-red-50 p-6 sm:p-8 text-sm text-red-600">
           {loadError?.message ?? "Vehicle not found"}
         </div>
       </main>
@@ -80,7 +80,7 @@ export default function EditVehiclePage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8">
+      <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8">
         <p className="text-xs uppercase tracking-widest text-primary-muted">Fleet</p>
         <h1 className="text-3xl font-semibold text-primary">Edit vehicle</h1>
         <p className="text-sm text-primary-muted">Update vehicle details below.</p>
@@ -106,7 +106,7 @@ export default function EditVehiclePage({ params }: PageProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
           <InputField
             label="Registration number"
             name="regNumber"
@@ -114,7 +114,7 @@ export default function EditVehiclePage({ params }: PageProps) {
             onChange={handleChange}
             required
           />
-          <label className="text-xs font-medium text-primary-muted">
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Description (optional)
             <textarea
               name="description"
@@ -124,9 +124,11 @@ export default function EditVehiclePage({ params }: PageProps) {
               className="nexus-input focus-ring mt-1"
             />
           </label>
-          <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
-            {submitting ? "Saving..." : "Update vehicle"}
-          </button>
+          <div className="sm:col-span-2">
+            <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
+              {submitting ? "Saving..." : "Update vehicle"}
+            </button>
+          </div>
         </form>
       </NexusBlock>
     </main>

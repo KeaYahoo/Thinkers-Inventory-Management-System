@@ -63,7 +63,7 @@ export default function NewSupplierPage() {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8">
+      <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8">
         <p className="text-xs uppercase tracking-widest text-primary-muted">Partners</p>
         <h1 className="text-3xl font-semibold text-primary">New supplier</h1>
         <p className="text-sm text-primary-muted">Add a supplier for parts and services.</p>
@@ -74,7 +74,7 @@ export default function NewSupplierPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
           <InputField label="Name" name="name" value={form.name} onChange={handleChange} required />
           <InputField label="Contact" name="contact" value={form.contact} onChange={handleChange} required />
           <InputField label="Spares" name="spares" value={form.spares} onChange={handleChange} required />
@@ -86,9 +86,11 @@ export default function NewSupplierPage() {
             onChange={handleChange}
             required
           />
-          <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
-            {submitting ? "Saving..." : "Create supplier"}
-          </button>
+          <div className="sm:col-span-2">
+            <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
+              {submitting ? "Saving..." : "Create supplier"}
+            </button>
+          </div>
         </form>
       </NexusBlock>
     </main>
@@ -107,4 +109,3 @@ function InputField({ label, name, className, ...rest }: FieldProps) {
     </label>
   );
 }
-

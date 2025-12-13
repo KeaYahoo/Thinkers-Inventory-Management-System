@@ -48,7 +48,7 @@ export default function NewVehiclePage() {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8">
+      <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8">
         <p className="text-xs uppercase tracking-widest text-primary-muted">Fleet</p>
         <h1 className="text-3xl font-semibold text-primary">New vehicle</h1>
         <p className="text-sm text-primary-muted">Add a vehicle for tracking usage and trips.</p>
@@ -59,7 +59,7 @@ export default function NewVehiclePage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
           <InputField
             label="Registration number"
             name="regNumber"
@@ -67,7 +67,7 @@ export default function NewVehiclePage() {
             onChange={handleChange}
             required
           />
-          <label className="text-xs font-medium text-primary-muted">
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Description (optional)
             <textarea
               name="description"
@@ -77,9 +77,11 @@ export default function NewVehiclePage() {
               className="nexus-input focus-ring mt-1"
             />
           </label>
-          <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
-            {submitting ? "Saving..." : "Create vehicle"}
-          </button>
+          <div className="sm:col-span-2">
+            <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
+              {submitting ? "Saving..." : "Create vehicle"}
+            </button>
+          </div>
         </form>
       </NexusBlock>
     </main>
@@ -96,4 +98,3 @@ function InputField({ label, name, className, ...rest }: FieldProps) {
     </label>
   );
 }
-

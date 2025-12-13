@@ -24,9 +24,7 @@ export default function NewConsumptionPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setForm((prev) => ({
       ...prev,
@@ -61,9 +59,9 @@ export default function NewConsumptionPage() {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <NexusBlock className="mx-auto max-w-3xl p-6 sm:p-8">
+      <NexusBlock className="mx-auto w-full max-w-lg p-6 sm:p-8">
         <p className="text-xs uppercase tracking-widest text-primary-muted">Operational usage</p>
-        <h1 className="text-3xl mb-1 font-semibold text-primary">Log consumption</h1>
+        <h1 className="mb-1 text-3xl font-semibold text-primary">Log consumption</h1>
         <p className="text-sm text-primary-muted">Record internal or external usage of stock items.</p>
 
         {(error || productsError) && (
@@ -72,8 +70,8 @@ export default function NewConsumptionPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <label className="text-xs font-medium text-primary-muted">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Product
             <select
               name="productId"
@@ -86,38 +84,39 @@ export default function NewConsumptionPage() {
               <option value="">Select product</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
-                  {product.code} · {product.name}
+                  {product.code} — {product.name}
                 </option>
               ))}
             </select>
           </label>
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="text-xs font-medium text-primary-muted">
-              Quantity
-              <input
-                type="number"
-                min="1"
-                name="quantity"
-                value={form.quantity}
-                onChange={handleChange}
-                required
-                className="nexus-input focus-ring mt-1"
-              />
-            </label>
-            <label className="text-xs font-medium text-primary-muted">
-              Type
-              <select
-                name="type"
-                value={form.type}
-                onChange={handleChange}
-                className="nexus-input focus-ring mt-1"
-              >
-                <option value="internal">Internal</option>
-                <option value="external">External</option>
-              </select>
-            </label>
-          </div>
+
           <label className="text-xs font-medium text-primary-muted">
+            Quantity
+            <input
+              type="number"
+              min="1"
+              name="quantity"
+              value={form.quantity}
+              onChange={handleChange}
+              required
+              className="nexus-input focus-ring mt-1"
+            />
+          </label>
+
+          <label className="text-xs font-medium text-primary-muted">
+            Type
+            <select
+              name="type"
+              value={form.type}
+              onChange={handleChange}
+              className="nexus-input focus-ring mt-1"
+            >
+              <option value="internal">Internal</option>
+              <option value="external">External</option>
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-primary-muted sm:col-span-2">
             Consumer
             <input
               name="consumer"
@@ -126,8 +125,9 @@ export default function NewConsumptionPage() {
               placeholder="Maintenance team, Fleet client, etc."
               required
               className="nexus-input focus-ring mt-1"
-              />
+            />
           </label>
+
           <label className="text-xs font-medium text-primary-muted">
             Date
             <input
@@ -139,15 +139,15 @@ export default function NewConsumptionPage() {
               className="nexus-input focus-ring mt-1"
             />
           </label>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn-brand focus-ring w-full"
-          >
-            {submitting ? "Saving..." : "Log consumption"}
-          </button>
+
+          <div className="sm:col-span-2">
+            <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
+              {submitting ? "Saving..." : "Log consumption"}
+            </button>
+          </div>
         </form>
       </NexusBlock>
     </main>
   );
 }
+

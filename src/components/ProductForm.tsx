@@ -152,154 +152,147 @@ export default function ProductForm({ initialData, onSubmit }: ProductFormProps)
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600" role="alert">
+        <div
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 sm:col-span-2"
+          role="alert"
+        >
           {error}
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field
-          id={`${prefix}-code`}
-          label="Product code"
-          name="code"
-          value={form.code}
-          onChange={handleChange}
-          required
-        />
-        <Field
-          id={`${prefix}-name`}
-          label="Name"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
-      <TextArea
-        id={`${prefix}-description`}
-        label="Description"
-        name="description"
-        value={form.description}
+      <Field
+        id={`${prefix}-code`}
+        label="Product code"
+        name="code"
+        value={form.code}
         onChange={handleChange}
-        rows={3}
+        required
+      />
+      <Field
+        id={`${prefix}-name`}
+        label="Name"
+        name="name"
+        value={form.name}
+        onChange={handleChange}
         required
       />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field
-          id={`${prefix}-category`}
-          label="Category"
-          name="category"
-          value={form.category}
+      <div className="sm:col-span-2">
+        <TextArea
+          id={`${prefix}-description`}
+          label="Description"
+          name="description"
+          value={form.description}
           onChange={handleChange}
+          rows={3}
           required
-        />
-        <Select
-          id={`${prefix}-unit`}
-          label="Unit"
-          name="unit"
-          value={form.unit}
-          onChange={handleChange}
-        >
-          <option value="unit">Unit</option>
-          <option value="L">Litre (L)</option>
-          <option value="KG">Kilogram (KG)</option>
-        </Select>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field
-          id={`${prefix}-stock`}
-          label="Stock"
-          name="stock"
-          type="number"
-          min={0}
-          step={1}
-          inputMode="numeric"
-          value={form.stock}
-          onChange={handleChange}
-          required
-        />
-        <Field
-          id={`${prefix}-minStock`}
-          label="Minimum stock"
-          name="minStock"
-          type="number"
-          min={0}
-          step={1}
-          inputMode="numeric"
-          value={form.minStock}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field
-          id={`${prefix}-cost`}
-          label="Cost"
-          name="cost"
-          type="number"
-          min={0}
-          step={0.01}
-          inputMode="decimal"
-          value={form.cost}
-          onChange={handleChange}
-          required
-        />
-        <Field
-          id={`${prefix}-markup`}
-          label="Markup (%)"
-          name="markup"
-          type="number"
-          min={0}
-          step={0.01}
-          inputMode="decimal"
-          value={form.markup}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field
-          id={`${prefix}-remaining`}
-          label="Remaining (optional)"
-          name="remaining"
-          type="number"
-          min={0}
-          step={1}
-          inputMode="numeric"
-          value={form.remaining}
-          onChange={handleChange}
-          placeholder={initialData ? String(initialData.remaining) : "Defaults to stock"}
-        />
-        <Field
-          id={`${prefix}-sellingPrice`}
-          label="Selling price"
-          name="sellingPrice"
-          value={sellingPriceDisplay}
-          readOnly
-          aria-readonly="true"
         />
       </div>
 
       <Field
-        id={`${prefix}-purchaseDate`}
-        label="Purchase date"
-        name="purchaseDate"
-        type="date"
-        value={form.purchaseDate}
+        id={`${prefix}-category`}
+        label="Category"
+        name="category"
+        value={form.category}
+        onChange={handleChange}
+        required
+      />
+      <Select id={`${prefix}-unit`} label="Unit" name="unit" value={form.unit} onChange={handleChange}>
+        <option value="unit">Unit</option>
+        <option value="L">Litre (L)</option>
+        <option value="KG">Kilogram (KG)</option>
+      </Select>
+
+      <Field
+        id={`${prefix}-stock`}
+        label="Stock"
+        name="stock"
+        type="number"
+        min={0}
+        step={1}
+        inputMode="numeric"
+        value={form.stock}
+        onChange={handleChange}
+        required
+      />
+      <Field
+        id={`${prefix}-minStock`}
+        label="Minimum stock"
+        name="minStock"
+        type="number"
+        min={0}
+        step={1}
+        inputMode="numeric"
+        value={form.minStock}
         onChange={handleChange}
         required
       />
 
-      <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
-        {submitting ? "Saving..." : initialData ? "Update product" : "Create product"}
-      </button>
+      <Field
+        id={`${prefix}-cost`}
+        label="Cost"
+        name="cost"
+        type="number"
+        min={0}
+        step={0.01}
+        inputMode="decimal"
+        value={form.cost}
+        onChange={handleChange}
+        required
+      />
+      <Field
+        id={`${prefix}-markup`}
+        label="Markup (%)"
+        name="markup"
+        type="number"
+        min={0}
+        step={0.01}
+        inputMode="decimal"
+        value={form.markup}
+        onChange={handleChange}
+        required
+      />
+
+      <Field
+        id={`${prefix}-remaining`}
+        label="Remaining (optional)"
+        name="remaining"
+        type="number"
+        min={0}
+        step={1}
+        inputMode="numeric"
+        value={form.remaining}
+        onChange={handleChange}
+        placeholder={initialData ? String(initialData.remaining) : "Defaults to stock"}
+      />
+      <Field
+        id={`${prefix}-sellingPrice`}
+        label="Selling price"
+        name="sellingPrice"
+        value={sellingPriceDisplay}
+        readOnly
+        aria-readonly="true"
+      />
+
+      <div className="sm:col-span-2">
+        <Field
+          id={`${prefix}-purchaseDate`}
+          label="Purchase date"
+          name="purchaseDate"
+          type="date"
+          value={form.purchaseDate}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className="sm:col-span-2">
+        <button type="submit" disabled={submitting} className="btn-brand focus-ring w-full">
+          {submitting ? "Saving..." : initialData ? "Update product" : "Create product"}
+        </button>
+      </div>
     </form>
   );
 }
@@ -344,4 +337,3 @@ function Select({ label, id, className, children, ...rest }: SelectProps) {
     </div>
   );
 }
-
