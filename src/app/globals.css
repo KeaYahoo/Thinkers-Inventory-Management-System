@@ -4,15 +4,15 @@
   --color-canvas: #f8fafc;
   --color-surface: #ffffff;
   --color-border-subtle: #e2e8f0;
-  --color-primary: #1e293b;
+  --color-primary: #1a1a1a;
   --color-primary-muted: #64748b;
-  --color-brand: #0284c7;
-  --color-brand-hover: #0369a1;
+  --color-brand: #d10000;
+  --color-brand-hover: #b00000;
   --color-status-success: #10b981;
   --color-status-warning: #f59e0b;
-  --color-status-critical: #ef4444;
+  --color-status-critical: #d10000;
   --shadow-surface: 0 8px 24px rgba(15, 23, 42, 0.08);
-  --shadow-float: 0 16px 40px rgba(2, 132, 199, 0.16);
+  --shadow-float: 0 16px 40px rgba(209, 0, 0, 0.16);
   --radius-nexus: 1.5rem;
 }
 

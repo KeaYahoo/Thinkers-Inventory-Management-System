@@ -2,16 +2,21 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Bell, Package, Repeat, Truck } from "lucide-react";
 import { ProductTable } from "@/components/ProductTable";
 import { NexusBlock } from "@/components/NexusBlock";
 import { useProducts } from "@/hooks/useProducts";
 import { useLowStockAlerts } from "@/hooks/useLowStockAlerts";
+import { useTransfers } from "@/hooks/useTransfers";
+import { useVehicles } from "@/hooks/useVehicles";
 import { useUI } from "@/context/UIContext";
 
 export default function InventoryPage() {
   const router = useRouter();
   const { products, isLoading, error, deleteProduct } = useProducts();
   const { totalCount, criticalCount, warningCount } = useLowStockAlerts();
+  const { transfers } = useTransfers();
+  const { vehicles } = useVehicles();
   const { showToast } = useUI();
 
   const handleDelete = async (id: number) => {
@@ -41,6 +46,17 @@ export default function InventoryPage() {
             + New Product
           </Link>
         </NexusBlock>
+
+        <NexusBlock className="p-6 sm:p-8">
+          <p className="text-xs uppercase tracking-widest text-primary-muted">Summary</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <SummaryCard icon={Package} label="Total products" value={products.length} />
+            <SummaryCard icon={Bell} label="Low-stock alerts" value={totalCount} />
+            <SummaryCard icon={Repeat} label="Transfers" value={transfers.length} />
+            <SummaryCard icon={Truck} label="Vehicles" value={vehicles.length} />
+          </div>
+        </NexusBlock>
+
         {error && (
           <NexusBlock className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error.message}
@@ -71,5 +87,27 @@ export default function InventoryPage() {
         />
       </div>
     </main>
+  );
+}
+
+type SummaryCardProps = {
+  icon: typeof Package;
+  label: string;
+  value: number;
+};
+
+function SummaryCard({ icon: Icon, label, value }: SummaryCardProps) {
+  return (
+    <div className="rounded-2xl border border-border-subtle bg-brand-light p-4 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-2xl font-semibold text-primary">{value.toLocaleString()}</div>
+          <div className="mt-1 text-xs uppercase tracking-widest text-primary-muted">{label}</div>
+        </div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-brand shadow-sm">
+          <Icon size={18} aria-hidden />
+        </div>
+      </div>
+    </div>
   );
 }

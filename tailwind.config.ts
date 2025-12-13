@@ -14,17 +14,20 @@ const config: Config = {
         surface: { DEFAULT: "#FFFFFF" },
         "border-subtle": { DEFAULT: "#E2E8F0" },
         primary: {
-          DEFAULT: "#1E293B",
+          DEFAULT: "#1A1A1A",
           muted: "#64748B",
         },
         brand: {
-          DEFAULT: "#0284C7",
-          hover: "#0369A1",
+          DEFAULT: "#D10000",
+          hover: "#B00000",
+          primary: "#D10000",
+          dark: "#1A1A1A",
+          light: "#F5F5F5",
         },
         status: {
           success: { DEFAULT: "#10B981" },
           warning: { DEFAULT: "#F59E0B" },
-          critical: { DEFAULT: "#EF4444" },
+          critical: { DEFAULT: "#D10000" },
         },
       },
       boxShadow: {
