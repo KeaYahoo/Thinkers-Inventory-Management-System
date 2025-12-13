@@ -36,3 +36,24 @@ export type Supplier = {
   createdAt?: string;
   updatedAt?: string;
 };
+
+export type Vehicle = {
+  id: number;
+  regNumber: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type VehicleLog = {
+  id: number;
+  vehicleId: number;
+  date: string;
+  location: string;
+  liters: number;
+  cost: number;
+  tripDetails?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  vehicle?: Vehicle;
+};
