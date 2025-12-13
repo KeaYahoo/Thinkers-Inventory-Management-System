@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const entries = await prisma.consumption.findMany({
       orderBy: { date: "desc" },
-      include: { product: true },
+      include: { product: true, vehicle: true },
     });
     return NextResponse.json(entries);
   } catch (error) {
@@ -25,10 +25,15 @@ export async function POST(request: Request) {
     const body = await request.json();
     const productId = Number(body.productId);
     const quantity = Number(body.quantity);
+    const vehicleIdRaw = body.vehicleId;
+    const vehicleId =
+      vehicleIdRaw === undefined || vehicleIdRaw === null || vehicleIdRaw === ""
+        ? null
+        : Number(vehicleIdRaw);
 
-    if (Number.isNaN(productId) || Number.isNaN(quantity)) {
+    if (Number.isNaN(productId) || Number.isNaN(quantity) || (vehicleId !== null && Number.isNaN(vehicleId))) {
       return NextResponse.json(
-        { error: "productId and quantity must be numbers" },
+        { error: "productId, quantity and vehicleId must be numbers" },
         { status: 400 },
       );
     }
@@ -41,6 +46,13 @@ export async function POST(request: Request) {
       const product = await tx.product.findUnique({ where: { id: productId } });
       if (!product) {
         throw new Error("Product not found");
+      }
+
+      if (vehicleId !== null) {
+        const vehicle = await tx.vehicle.findUnique({ where: { id: vehicleId } });
+        if (!vehicle) {
+          throw new Error("Vehicle not found");
+        }
       }
 
       if (product.remaining - quantity < 0) {
@@ -58,6 +70,7 @@ export async function POST(request: Request) {
       return tx.consumption.create({
         data: {
           productId,
+          vehicleId,
           quantity,
           type,
           consumer,

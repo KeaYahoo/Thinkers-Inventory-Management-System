@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseDateRange } from "@/lib/reporting";
 
 const REQUIRED_FIELDS = [
   "code",
@@ -14,10 +15,21 @@ const REQUIRED_FIELDS = [
   "purchaseDate",
 ];
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get("category")?.trim();
+    const { from, to, error: dateError } = parseDateRange(searchParams);
+    if (dateError) {
+      return NextResponse.json({ error: dateError }, { status: 400 });
+    }
+
     const products = await prisma.product.findMany({
       orderBy: { name: "asc" },
+      where: {
+        ...(category ? { category } : {}),
+        ...(from || to ? { purchaseDate: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } } : {}),
+      },
     });
     return NextResponse.json(products);
   } catch (error) {

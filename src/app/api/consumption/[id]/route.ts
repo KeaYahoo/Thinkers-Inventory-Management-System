@@ -17,7 +17,7 @@ export async function GET(
     const { id } = await params;
     const record = await prisma.consumption.findUnique({
       where: { id: parseId(id) },
-      include: { product: true },
+      include: { product: true, vehicle: true },
     });
 
     if (!record) {
@@ -78,8 +78,23 @@ export async function PUT(
     const type = body.type ?? existing.type;
     const consumer = body.consumer ?? existing.consumer;
     const date = body.date ? new Date(body.date) : existing.date;
+    const newVehicleId =
+      body.vehicleId !== undefined
+        ? body.vehicleId === null || body.vehicleId === ""
+          ? null
+          : Number(body.vehicleId)
+        : existing.vehicleId;
+
+    if (newVehicleId !== null && (Number.isNaN(newVehicleId) || newVehicleId <= 0)) {
+      return NextResponse.json({ error: "vehicleId must be a valid number" }, { status: 400 });
+    }
 
     const updated = await prisma.$transaction(async (tx) => {
+      if (newVehicleId !== null) {
+        const vehicle = await tx.vehicle.findUnique({ where: { id: newVehicleId } });
+        if (!vehicle) throw new Error("Vehicle not found");
+      }
+
       if (newProductId === existing.productId) {
         const product = await tx.product.findUnique({
           where: { id: existing.productId },
@@ -142,6 +157,7 @@ export async function PUT(
         where: { id },
         data: {
           productId: newProductId,
+          vehicleId: newVehicleId,
           quantity: newQuantity,
           type,
           consumer,
@@ -157,7 +173,8 @@ export async function PUT(
     const status =
       message.includes("Invalid consumption id") ||
       message.includes("Insufficient") ||
-      message.includes("Product not found")
+      message.includes("Product not found") ||
+      message.includes("Vehicle not found")
         ? 400
         : 500;
     console.error("[CONSUMPTION_PUT]", error);
