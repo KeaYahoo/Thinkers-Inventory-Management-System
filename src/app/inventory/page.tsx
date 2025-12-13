@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { ProductTable } from "@/components/ProductTable";
 import { NexusBlock } from "@/components/NexusBlock";
 import { useProducts } from "@/hooks/useProducts";
+import { useLowStockAlerts } from "@/hooks/useLowStockAlerts";
 import { useUI } from "@/context/UIContext";
 
 export default function InventoryPage() {
   const router = useRouter();
   const { products, isLoading, error, deleteProduct } = useProducts();
+  const { totalCount, criticalCount, warningCount } = useLowStockAlerts();
   const { showToast } = useUI();
 
   const handleDelete = async (id: number) => {
@@ -44,6 +46,21 @@ export default function InventoryPage() {
             {error.message}
           </NexusBlock>
         )}
+
+        {totalCount > 0 && (
+          <NexusBlock className="flex flex-wrap items-center justify-between gap-3 bg-canvas p-4 sm:p-5">
+            <div className="text-sm text-primary-muted">
+              <span className="font-semibold text-primary">{totalCount}</span> low-stock alert
+              {totalCount === 1 ? "" : "s"}:
+              <span className="ml-2 font-semibold text-primary">{criticalCount}</span> out of stock,{" "}
+              <span className="font-semibold text-primary">{warningCount}</span> low stock.
+            </div>
+            <Link href="/alerts" className="text-sm font-semibold text-brand underline">
+              View alerts
+            </Link>
+          </NexusBlock>
+        )}
+
         <ProductTable
           products={products}
           loading={isLoading}

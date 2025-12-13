@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, Truck, Users, FileText, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Truck, Users, FileText, Settings, Bell } from "lucide-react";
+import { useLowStockAlerts } from "@/hooks/useLowStockAlerts";
 
 const navItems = [
   { href: "/", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/inventory", label: "Inventory", Icon: Package },
+  { href: "/alerts", label: "Alerts", Icon: Bell },
   { href: "/consumption", label: "Consumption", Icon: ShoppingCart },
   { href: "/vehicles", label: "Vehicles", Icon: Truck },
   { href: "/suppliers", label: "Suppliers", Icon: Users },
@@ -21,6 +23,7 @@ const isActive = (path: string, href: string) => {
 
 export default function FloatingHeader() {
   const pathname = usePathname();
+  const { totalCount } = useLowStockAlerts();
 
   return (
     <div className="fixed left-1/2 top-6 z-50 w-[calc(100%-1.5rem)] max-w-4xl -translate-x-1/2">
@@ -32,6 +35,7 @@ export default function FloatingHeader() {
         <nav className="flex items-center gap-2 overflow-x-auto">
           {navItems.map(({ href, label, Icon }) => {
             const active = isActive(pathname, href);
+            const showBadge = href === "/alerts" && totalCount > 0;
             return (
               <Link
                 key={href}
@@ -44,6 +48,14 @@ export default function FloatingHeader() {
               >
                 <Icon size={18} aria-hidden />
                 <span className="hidden md:inline">{label}</span>
+                {showBadge && (
+                  <span
+                    className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-status-critical px-1.5 py-0.5 text-[10px] font-bold leading-none text-white"
+                    aria-label={`${totalCount} low-stock alerts`}
+                  >
+                    {totalCount > 99 ? "99+" : totalCount}
+                  </span>
+                )}
               </Link>
             );
           })}

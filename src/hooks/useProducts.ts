@@ -44,6 +44,7 @@ export function useProducts() {
       throw new Error(getPayloadError(payload) ?? "Failed to create product");
     }
     await mutate();
+    await globalMutate("/api/alerts/low-stock");
     return payload as Product;
   };
 
@@ -59,6 +60,7 @@ export function useProducts() {
     }
     await mutate();
     await globalMutate(`/api/products/${id}`);
+    await globalMutate("/api/alerts/low-stock");
     return payload as Product;
   };
 
@@ -69,6 +71,7 @@ export function useProducts() {
       throw new Error(getPayloadError(payload) ?? "Failed to delete product");
     }
     await mutate();
+    await globalMutate("/api/alerts/low-stock");
     return payload as { success: boolean };
   };
 

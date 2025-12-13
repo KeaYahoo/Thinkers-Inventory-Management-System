@@ -40,6 +40,7 @@ export function useConsumption() {
     }
     await mutate();
     await globalMutate("/api/products");
+    await globalMutate("/api/alerts/low-stock");
     return payload as Consumption;
   };
 
@@ -56,6 +57,7 @@ export function useConsumption() {
     await mutate();
     await globalMutate(`/api/consumption/${id}`);
     await globalMutate("/api/products");
+    await globalMutate("/api/alerts/low-stock");
     return payload as Consumption;
   };
 
@@ -67,6 +69,7 @@ export function useConsumption() {
     }
     await mutate();
     await globalMutate("/api/products");
+    await globalMutate("/api/alerts/low-stock");
     return payload as Consumption;
   };
 
