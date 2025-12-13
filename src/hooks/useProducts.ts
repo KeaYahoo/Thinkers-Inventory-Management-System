@@ -20,7 +20,7 @@ const fetcher = async <T,>(url: string): Promise<T> => {
   return payload as T;
 };
 
-type ProductInput = Omit<Product, "id" | "createdAt" | "updatedAt"> & {
+type ProductInput = Omit<Product, "id" | "createdAt" | "updatedAt" | "remaining" | "sellingPrice"> & {
   remaining?: number;
   sellingPrice?: number;
 };

@@ -5,14 +5,14 @@ export async function GET() {
   try {
     const grouped = await prisma.product.groupBy({
       by: ["category"],
-      _count: { _all: true },
-      orderBy: { _count: { _all: "desc" } },
+      _count: { id: true },
+      orderBy: { _count: { id: "desc" } },
     });
 
     return NextResponse.json(
       grouped.map((group) => ({
         category: group.category,
-        count: group._count._all,
+        count: group._count.id,
       })),
     );
   } catch (error) {
@@ -26,4 +26,3 @@ export async function GET() {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
