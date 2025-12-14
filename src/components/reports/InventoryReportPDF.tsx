@@ -1,4 +1,5 @@
-import { Document, Image as PdfImage, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, StyleSheet, Text, View } from "@react-pdf/renderer";
+import PDFLayout from "./PDFLayout";
 
 type ReportProduct = {
   id: number;
@@ -22,6 +23,7 @@ type ReportSummary = {
 type InventoryReportPDFProps = {
   products: ReportProduct[];
   summary: ReportSummary;
+  insights?: string;
   generatedAt: string;
   logoSrc?: string;
 };
@@ -40,8 +42,8 @@ const COLORS = {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 24,
-    fontSize: 10,
+    padding: 28,
+    fontSize: 12,
     fontFamily: "Helvetica",
     color: COLORS.text,
     backgroundColor: COLORS.canvas,
@@ -61,11 +63,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logo: { width: 110, height: 32 },
-  title: { fontSize: 16, fontWeight: 700, color: COLORS.brand },
+  title: { fontSize: 20, fontWeight: 700, color: COLORS.brand },
   subtitle: { marginTop: 4, color: COLORS.muted },
-  generatedAt: { color: COLORS.muted, fontSize: 9 },
-  section: { marginTop: 14 },
-  sectionTitle: { fontSize: 11, fontWeight: 700, marginBottom: 8 },
+  generatedAt: { color: COLORS.muted, fontSize: 11 },
+  section: { marginTop: 16, marginBottom: 12 },
+  sectionTitle: { fontSize: 14, fontWeight: 700, marginBottom: 10 },
   summaryRow: { flexDirection: "row" },
   summaryCard: {
     flexGrow: 1,
@@ -119,7 +121,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 3,
     paddingHorizontal: 8,
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: 700,
     color: COLORS.surface,
   },
@@ -153,6 +155,7 @@ function getStatus(remaining: number, minStock: number) {
 export default function InventoryReportPDF({
   products,
   summary,
+  insights,
   generatedAt,
   logoSrc,
 }: InventoryReportPDFProps) {
@@ -162,22 +165,7 @@ export default function InventoryReportPDF({
   return (
     <Document title="Inventory Report" author="Thinkers Afrika IMS">
       {safePages.map((pageProducts, pageIndex) => (
-        <Page key={pageIndex} size="A4" style={styles.page}>
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              {logoSrc ? (
-                <View style={{ marginRight: 10 }}>
-                  <PdfImage src={logoSrc} style={styles.logo} />
-                </View>
-              ) : null}
-              <View>
-                <Text style={styles.title}>Inventory Report</Text>
-                <Text style={styles.subtitle}>Thinkers Afrika Inventory Management System</Text>
-              </View>
-            </View>
-            <Text style={styles.generatedAt}>Generated: {generatedAt}</Text>
-          </View>
-
+        <PDFLayout key={pageIndex} title="Inventory Report" generatedAt={generatedAt} logoSrc={logoSrc}>
           {pageIndex === 0 ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Summary</Text>
@@ -199,6 +187,9 @@ export default function InventoryReportPDF({
                   <Text style={styles.summaryValue}>{summary.totalRemainingUnits.toLocaleString()}</Text>
                 </View>
               </View>
+              {insights ? (
+                <Text style={{ marginTop: 10, fontSize: 11, color: COLORS.muted }}>{insights}</Text>
+              ) : null}
             </View>
           ) : null}
 
@@ -219,14 +210,16 @@ export default function InventoryReportPDF({
                 pageProducts.map((product, index) => {
                   const status = getStatus(product.remaining, product.minStock);
                   const rowStyle =
-                    index === pageProducts.length - 1 ? [styles.tableRow, { borderBottomWidth: 0 }] : styles.tableRow;
+                    index % 2 === 0
+                      ? { ...styles.tableRow, backgroundColor: "#F5F5F5" }
+                      : styles.tableRow;
                   return (
                     <View key={product.id} style={rowStyle}>
                       <Text style={[styles.cell, styles.code]}>{product.code}</Text>
                       <View style={[styles.cell, styles.name]}>
                         <Text style={{ fontWeight: 700 }}>{product.name}</Text>
                         {product.description ? (
-                          <Text style={{ marginTop: 2, fontSize: 9, color: COLORS.muted }}>
+                          <Text style={{ marginTop: 2, fontSize: 10, color: COLORS.muted }}>
                             {product.description}
                           </Text>
                         ) : null}
@@ -256,7 +249,7 @@ export default function InventoryReportPDF({
               </Text>
             ) : null}
           </View>
-        </Page>
+        </PDFLayout>
       ))}
     </Document>
   );

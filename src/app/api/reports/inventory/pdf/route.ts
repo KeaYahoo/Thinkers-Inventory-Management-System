@@ -37,6 +37,14 @@ export async function GET(request: Request) {
     const outOfStockCount = products.filter((product) => product.remaining <= 0).length;
     const lowStockCount = products.filter((product) => product.remaining <= product.minStock).length;
     const totalRemainingUnits = products.reduce((sum, product) => sum + product.remaining, 0);
+    const categoryCount = new Set(products.map((p) => p.category)).size;
+
+    const insights =
+      products.length === 0
+        ? "No products found for the selected filters."
+        : outOfStockCount === 0 && lowStockCount === 0
+          ? "All products are currently healthy with no low or out-of-stock items."
+          : `${outOfStockCount} out-of-stock and ${lowStockCount - outOfStockCount} low-stock items across ${categoryCount} categories.`;
 
     const logoSrc = await readLogoDataUri();
     const generatedAt = new Date().toLocaleString("en-ZA");
@@ -50,6 +58,7 @@ export async function GET(request: Request) {
           outOfStockCount,
           totalRemainingUnits,
         },
+        insights,
         generatedAt,
         logoSrc,
       }),

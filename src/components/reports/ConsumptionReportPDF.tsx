@@ -1,4 +1,5 @@
-import { Document, Image as PdfImage, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, StyleSheet, Text, View } from "@react-pdf/renderer";
+import PDFLayout from "./PDFLayout";
 
 type ConsumptionProductRow = {
   productId: number;
@@ -37,8 +38,8 @@ const COLORS = {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 24,
-    fontSize: 10,
+    padding: 28,
+    fontSize: 12,
     fontFamily: "Helvetica",
     color: COLORS.text,
     backgroundColor: COLORS.canvas,
@@ -58,11 +59,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logo: { width: 110, height: 32 },
-  title: { fontSize: 16, fontWeight: 700, color: COLORS.brand },
+  title: { fontSize: 20, fontWeight: 700, color: COLORS.brand },
   subtitle: { marginTop: 4, color: COLORS.muted },
-  generatedAt: { color: COLORS.muted, fontSize: 9, textAlign: "right" },
-  section: { marginTop: 14 },
-  sectionTitle: { fontSize: 11, fontWeight: 700, marginBottom: 8 },
+  generatedAt: { color: COLORS.muted, fontSize: 11, textAlign: "right" },
+  section: { marginTop: 16, marginBottom: 12 },
+  sectionTitle: { fontSize: 14, fontWeight: 700, marginBottom: 10 },
   summaryRow: { flexDirection: "row" },
   summaryCard: {
     flexGrow: 1,
@@ -128,23 +129,7 @@ export default function ConsumptionReportPDF({
   return (
     <Document title="Consumption Report" author="Thinkers Afrika IMS">
       {(pages.length ? pages : [[]]).map((pageRows, pageIndex) => (
-        <Page key={pageIndex} size="A4" style={styles.page}>
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              {logoSrc ? (
-                <View style={{ marginRight: 10 }}>
-                  <PdfImage src={logoSrc} style={styles.logo} />
-                </View>
-              ) : null}
-              <View>
-                <Text style={styles.title}>Consumption Report</Text>
-                <Text style={styles.subtitle}>Thinkers Afrika Inventory Management System</Text>
-                {filtersLabel ? <Text style={styles.subtitle}>{filtersLabel}</Text> : null}
-              </View>
-            </View>
-            <Text style={styles.generatedAt}>Generated: {generatedAt}</Text>
-          </View>
-
+        <PDFLayout key={pageIndex} title="Consumption Report" generatedAt={generatedAt} logoSrc={logoSrc}>
           {pageIndex === 0 ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Summary</Text>
@@ -166,6 +151,9 @@ export default function ConsumptionReportPDF({
                   <Text style={styles.summaryValue}>{summary.otherQuantity.toLocaleString()}</Text>
                 </View>
               </View>
+              {filtersLabel ? (
+                <Text style={{ marginTop: 10, fontSize: 11, color: COLORS.muted }}>{filtersLabel}</Text>
+              ) : null}
             </View>
           ) : null}
 
@@ -183,20 +171,20 @@ export default function ConsumptionReportPDF({
 
               {pageRows.length ? (
                 pageRows.map((row, rowIndex) => {
-                  const isLast = rowIndex === pageRows.length - 1;
-                  const rowStyle =
-                    isLast ? [styles.tableRow, { borderBottomWidth: 0 }] : styles.tableRow;
+                  const baseRow =
+                    rowIndex % 2 === 0 ? { ...styles.tableRow, backgroundColor: "#F5F5F5" } : styles.tableRow;
+                  const rowStyle = rowIndex === pageRows.length - 1 ? { ...baseRow, borderBottomWidth: 0 } : baseRow;
                   return (
                     <View key={row.productId} style={rowStyle}>
                       <Text style={[styles.cell, styles.code]}>{row.code}</Text>
                       <View style={[styles.cell, styles.name]}>
                         <Text style={{ fontWeight: 700 }}>{row.name}</Text>
-                        <Text style={{ marginTop: 2, fontSize: 9, color: COLORS.muted }}>{row.unit}</Text>
+                        <Text style={{ marginTop: 2, fontSize: 10, color: COLORS.muted }}>{row.unit}</Text>
                       </View>
                       <Text style={[styles.cell, styles.category]}>{row.category}</Text>
                       <Text style={[styles.cell, styles.thinkers]}>{row.thinkersQuantity.toLocaleString()}</Text>
                       <Text style={[styles.cell, styles.other]}>{row.otherQuantity.toLocaleString()}</Text>
-                      <Text style={styles.total}>{row.totalQuantity.toLocaleString()}</Text>
+                      <Text style={[styles.cell, styles.total]}>{row.totalQuantity.toLocaleString()}</Text>
                     </View>
                   );
                 })
@@ -207,7 +195,7 @@ export default function ConsumptionReportPDF({
               )}
             </View>
           </View>
-        </Page>
+        </PDFLayout>
       ))}
     </Document>
   );

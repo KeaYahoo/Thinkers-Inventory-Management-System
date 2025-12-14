@@ -1,4 +1,5 @@
-import { Document, Image as PdfImage, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, StyleSheet, Text, View } from "@react-pdf/renderer";
+import PDFLayout from "./PDFLayout";
 
 type VehicleRow = {
   id: number;
@@ -35,8 +36,8 @@ const COLORS = {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 24,
-    fontSize: 10,
+    padding: 28,
+    fontSize: 12,
     fontFamily: "Helvetica",
     color: COLORS.text,
     backgroundColor: COLORS.canvas,
@@ -56,11 +57,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logo: { width: 110, height: 32 },
-  title: { fontSize: 16, fontWeight: 700, color: COLORS.brand },
+  title: { fontSize: 20, fontWeight: 700, color: COLORS.brand },
   subtitle: { marginTop: 4, color: COLORS.muted },
-  generatedAt: { color: COLORS.muted, fontSize: 9, textAlign: "right" },
-  section: { marginTop: 14 },
-  sectionTitle: { fontSize: 11, fontWeight: 700, marginBottom: 8 },
+  generatedAt: { color: COLORS.muted, fontSize: 11, textAlign: "right" },
+  section: { marginTop: 16, marginBottom: 12 },
+  sectionTitle: { fontSize: 14, fontWeight: 700, marginBottom: 10 },
   summaryRow: { flexDirection: "row" },
   summaryCard: {
     flexGrow: 1,
@@ -124,99 +125,70 @@ export default function VehicleReportPDF({
 
   return (
     <Document title="Vehicle Report" author="Thinkers Afrika IMS">
-      {pages.length ? (
-        pages.map((rows, pageIndex) => (
-          <Page key={pageIndex} size="A4" style={styles.page}>
-            <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                {logoSrc ? (
-                  <View style={{ marginRight: 10 }}>
-                    <PdfImage src={logoSrc} style={styles.logo} />
-                  </View>
-                ) : null}
-                <View>
-                  <Text style={styles.title}>Vehicle Report</Text>
-                  <Text style={styles.subtitle}>Thinkers Afrika Inventory Management System</Text>
-                  {filtersLabel ? <Text style={styles.subtitle}>{filtersLabel}</Text> : null}
-                </View>
-              </View>
-              <Text style={styles.generatedAt}>Generated: {generatedAt}</Text>
-            </View>
-
-            {pageIndex === 0 ? (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Summary</Text>
-                <View style={styles.summaryRow}>
-                  <View style={styles.summaryCard}>
-                    <Text style={styles.summaryLabel}>Vehicles</Text>
-                    <Text style={styles.summaryValue}>{summary.totalVehicles.toLocaleString()}</Text>
-                  </View>
-                  <View style={styles.summaryCard}>
-                    <Text style={styles.summaryLabel}>On-road units</Text>
-                    <Text style={styles.summaryValue}>{summary.totalOnRoadUnits.toLocaleString()}</Text>
-                  </View>
-                  <View style={styles.summaryCard}>
-                    <Text style={styles.summaryLabel}>Logs</Text>
-                    <Text style={styles.summaryValue}>{summary.totalLogs.toLocaleString()}</Text>
-                  </View>
-                  <View style={[styles.summaryCard, { marginRight: 0 }]}>
-                    <Text style={styles.summaryLabel}>Transfers</Text>
-                    <Text style={styles.summaryValue}>{summary.totalTransfers.toLocaleString()}</Text>
-                  </View>
-                </View>
-              </View>
-            ) : null}
-
+      {(pages.length ? pages : [[]]).map((rows, pageIndex) => (
+        <PDFLayout key={pageIndex} title="Vehicle Report" generatedAt={generatedAt} logoSrc={logoSrc}>
+          {pageIndex === 0 ? (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Vehicles</Text>
-              <View style={{ borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, backgroundColor: COLORS.surface }}>
-                <View style={styles.tableHeaderRow}>
-                  <Text style={[styles.tableHeaderCell, styles.cell, styles.reg]}>Registration</Text>
-                  <Text style={[styles.tableHeaderCell, styles.cell, styles.desc]}>Description</Text>
-                  <Text style={[styles.tableHeaderCell, styles.cell, styles.stock]}>On-road</Text>
-                  <Text style={[styles.tableHeaderCell, styles.cell, styles.logs]}>Logs</Text>
-                  <Text style={[styles.tableHeaderCell, styles.transfers]}>Transfers</Text>
+              <Text style={styles.sectionTitle}>Summary</Text>
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryCard}>
+                  <Text style={styles.summaryLabel}>Vehicles</Text>
+                  <Text style={styles.summaryValue}>{summary.totalVehicles.toLocaleString()}</Text>
                 </View>
-                {rows.map((vehicle, rowIndex) => {
-                  const isLast = rowIndex === rows.length - 1;
-                  const rowStyle = isLast ? [styles.tableRow, { borderBottomWidth: 0 }] : styles.tableRow;
-                  return (
-                    <View key={vehicle.id} style={rowStyle}>
-                      <Text style={[styles.cell, styles.reg]}>{vehicle.regNumber}</Text>
-                      <Text style={[styles.cell, styles.desc]}>{vehicle.description || "—"}</Text>
-                      <Text style={[styles.cell, styles.stock]}>{vehicle.onRoadUnits.toLocaleString()}</Text>
-                      <Text style={[styles.cell, styles.logs]}>{vehicle.logCount.toLocaleString()}</Text>
-                      <Text style={styles.transfers}>{vehicle.transferCount.toLocaleString()}</Text>
-                    </View>
-                  );
-                })}
+                <View style={styles.summaryCard}>
+                  <Text style={styles.summaryLabel}>On-road units</Text>
+                  <Text style={styles.summaryValue}>{summary.totalOnRoadUnits.toLocaleString()}</Text>
+                </View>
+                <View style={styles.summaryCard}>
+                  <Text style={styles.summaryLabel}>Logs</Text>
+                  <Text style={styles.summaryValue}>{summary.totalLogs.toLocaleString()}</Text>
+                </View>
+                <View style={[styles.summaryCard, { marginRight: 0 }]}>
+                  <Text style={styles.summaryLabel}>Transfers</Text>
+                  <Text style={styles.summaryValue}>{summary.totalTransfers.toLocaleString()}</Text>
+                </View>
               </View>
-            </View>
-          </Page>
-        ))
-      ) : (
-        <Page size="A4" style={styles.page}>
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              {logoSrc ? (
-                <View style={{ marginRight: 10 }}>
-                  <PdfImage src={logoSrc} style={styles.logo} />
-                </View>
+              {filtersLabel ? (
+                <Text style={{ marginTop: 10, fontSize: 11, color: COLORS.muted }}>{filtersLabel}</Text>
               ) : null}
-              <View>
-                <Text style={styles.title}>Vehicle Report</Text>
-                <Text style={styles.subtitle}>Thinkers Afrika Inventory Management System</Text>
-              </View>
             </View>
-            <Text style={styles.generatedAt}>Generated: {generatedAt}</Text>
-          </View>
+          ) : null}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Vehicles</Text>
-            <Text style={{ color: COLORS.muted }}>No vehicles found.</Text>
+            <View style={{ borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, backgroundColor: COLORS.surface }}>
+              <View style={styles.tableHeaderRow}>
+                <Text style={[styles.tableHeaderCell, styles.cell, styles.reg]}>Registration</Text>
+                <Text style={[styles.tableHeaderCell, styles.cell, styles.desc]}>Description</Text>
+                <Text style={[styles.tableHeaderCell, styles.cell, styles.stock]}>On-road</Text>
+                <Text style={[styles.tableHeaderCell, styles.cell, styles.logs]}>Logs</Text>
+                <Text style={[styles.tableHeaderCell, styles.transfers]}>Transfers</Text>
+              </View>
+              {rows.length ? (
+                rows.map((vehicle, rowIndex) => {
+                  const baseRow = rowIndex % 2 === 0 ? { ...styles.tableRow, backgroundColor: "#F5F5F5" } : styles.tableRow;
+                  const rowStyle = rowIndex === rows.length - 1 ? { ...baseRow, borderBottomWidth: 0 } : baseRow;
+                  return (
+                    <View key={vehicle.id} style={rowStyle}>
+                      <Text style={[styles.cell, styles.reg]}>{vehicle.regNumber}</Text>
+                      <View style={[styles.cell, styles.desc]}>
+                        <Text style={{ fontWeight: 700 }}>{vehicle.description || "—"}</Text>
+                      </View>
+                      <Text style={[styles.cell, styles.stock]}>{vehicle.onRoadUnits.toLocaleString()}</Text>
+                      <Text style={[styles.cell, styles.logs]}>{vehicle.logCount.toLocaleString()}</Text>
+                      <Text style={[styles.cell, styles.transfers]}>{vehicle.transferCount.toLocaleString()}</Text>
+                    </View>
+                  );
+                })
+              ) : (
+                <View style={{ padding: 12 }}>
+                  <Text style={{ color: COLORS.muted }}>No vehicles found.</Text>
+                </View>
+              )}
+            </View>
           </View>
-        </Page>
-      )}
+        </PDFLayout>
+      ))}
     </Document>
   );
 }

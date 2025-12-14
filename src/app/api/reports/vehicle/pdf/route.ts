@@ -66,7 +66,10 @@ export async function GET(request: Request) {
       totalTransfers: vehicleRows.reduce((sum, row) => sum + row.transferCount, 0),
     };
 
-    const filtersLabel = from || to ? `Filters: ${from ? from.toLocaleDateString("en-ZA") : "Any"} - ${to ? to.toLocaleDateString("en-ZA") : "Any"}` : undefined;
+    const filtersLabel =
+      from || to
+        ? `Filters: ${from ? from.toLocaleDateString("en-ZA") : "Any"} - ${to ? to.toLocaleDateString("en-ZA") : "Any"}`
+        : undefined;
     const logoSrc = await readLogoDataUri();
     const generatedAt = new Date().toLocaleString("en-ZA");
 
@@ -95,4 +98,3 @@ export async function GET(request: Request) {
     );
   }
 }
-
