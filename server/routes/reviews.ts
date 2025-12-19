@@ -3,7 +3,7 @@
  */
 import type { RequestHandler } from "express";
 import { z } from "zod";
-import { supabase } from "../lib/supabaseClient";
+import { createSupabaseClient, supabase as publicSupabase } from "../lib/supabaseClient";
 import type { AuthenticatedRequest } from "../middleware/auth";
 
 const REVIEW_COLUMNS = "id, rating, comment, user_id, trip_id, created_at, is_approved";
@@ -22,9 +22,9 @@ export const handleGetReviewsByTripId: RequestHandler = async (req, res) => {
       return res.status(400).json({ message: "Trip identifier is required." });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await publicSupabase
       .from("reviews")
-      .select(`${REVIEW_COLUMNS}, user:users(${USER_COLUMNS})`)
+      .select(`${REVIEW_COLUMNS}, user:profiles(${USER_COLUMNS})`)
       .eq("trip_id", tripId)
       .eq("is_approved", true)
       .order("created_at", { ascending: false });
@@ -44,13 +44,13 @@ export const handleGetReviewsByTripId: RequestHandler = async (req, res) => {
 export const handleCreateReview: RequestHandler = async (req, res) => {
   try {
     const { tripId } = req.params as { tripId?: string };
-    const { userId } = req as AuthenticatedRequest;
+    const { userId, token } = req as AuthenticatedRequest;
 
     if (!tripId) {
       return res.status(400).json({ message: "Trip identifier is required." });
     }
 
-    if (!userId) {
+    if (!userId || !token) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -73,6 +73,8 @@ export const handleCreateReview: RequestHandler = async (req, res) => {
       user_id: userId,
       is_approved: false,
     };
+
+    const supabase = createSupabaseClient(token);
 
     const { data, error } = await supabase
       .from("reviews")

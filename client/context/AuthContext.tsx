@@ -1,100 +1,68 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import type { Session, User } from "@supabase/supabase-js";
 
 type UserRole = "admin" | "user" | null;
 
-type JwtPayload = {
-  userId?: string | number;
-  role?: "admin" | "user";
-  [key: string]: unknown;
-};
-
 interface AuthContextType {
+  session: Session | null;
+  user: User | null;
   token: string | null;
   role: UserRole;
-  userId: string | number | null;
+  userId: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (token: string, roleHint?: "admin" | "user") => void;
-  logout: () => void;
-}
-
-interface AuthState {
-  token: string | null;
-  role: UserRole;
-  userId: string | number | null;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const decodeToken = (token: string): JwtPayload => {
-  try {
-    const [, payload] = token.split(".");
-    if (!payload) {
-      return {};
-    }
-    const decoded = JSON.parse(atob(payload));
-    return decoded as JwtPayload;
-  } catch (error) {
-    console.warn("Failed to decode JWT", error);
-    return {};
-  }
-};
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [authState, setAuthState] = useState<AuthState>(() => {
-    if (typeof window === "undefined") {
-      return { token: null, role: null, userId: null };
-    }
-    const storedToken = localStorage.getItem("trvlsync_token");
-    if (!storedToken) {
-      return { token: null, role: null, userId: null };
-    }
-    const decoded = decodeToken(storedToken);
-    return {
-      token: storedToken,
-      role: (decoded.role as UserRole) ?? null,
-      userId: decoded.userId ?? null,
-    };
-  });
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("trvlsync_token");
-    if (storedToken) {
-      const decoded = decodeToken(storedToken);
-      setAuthState({
-        token: storedToken,
-        role: (decoded.role as UserRole) ?? null,
-        userId: decoded.userId ?? null,
-      });
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = (newToken: string, roleHint?: "admin" | "user") => {
-    const decoded = decodeToken(newToken);
-    const role = (decoded.role as UserRole) ?? roleHint ?? "user";
-    const userId = decoded.userId ?? null;
-
-    setAuthState({ token: newToken, role, userId });
-    localStorage.setItem("trvlsync_token", newToken);
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
-  const logout = () => {
-    setAuthState({ token: null, role: null, userId: null });
-    localStorage.removeItem("trvlsync_token");
-  };
-
-  const isAuthenticated = Boolean(authState.token);
-  const isAdmin = authState.role === "admin";
+  const token = session?.access_token ?? null;
+  const isAuthenticated = !!session;
+  const userId = user?.id ?? null;
+  
+  // TODO: Check admin role properly locally if needed, or rely on server.
+  // We can check user.email against a known admin email if simplistic check is sufficient for UI.
+  // Or check user_metadata.
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase(); // Make sure this env var exists if we rely on it
+  // Fallback to simplistic check matching server logic if possible, or just default to User.
+  const isAdmin = !!(user?.email && adminEmail && user.email.toLowerCase() === adminEmail);
+  const role: UserRole = isAdmin ? "admin" : "user";
 
   return (
     <AuthContext.Provider
       value={{
-        token: authState.token,
-        role: authState.role,
-        userId: authState.userId,
+        session,
+        user,
+        token,
+        role,
+        userId,
         isAuthenticated,
         isAdmin,
-        login,
         logout,
       }}
     >

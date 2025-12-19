@@ -8,33 +8,34 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiFetch, ApiError } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login } = useAuth();
+  // No need for login function from context as Supabase handles session automatically via listener
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
 
     try {
-      const data = await apiFetch<{ token: string }>("/auth/login", {
-        method: "POST",
-        body: { email, password },
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      login(data.token);
+      if (error) {
+        setError(error.message);
+        return;
+      }
+      
+      // Navigate on success. The AuthContext listener will update state.
       navigate("/dashboard");
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message || "Failed to log in.");
-      } else {
-        setError("Failed to log in.");
-      }
+      setError("Failed to log in.");
     }
   };
 

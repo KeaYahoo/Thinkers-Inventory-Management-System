@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 export interface AuthenticatedRequest extends Request {
   userId?: string | number;
   role?: "admin" | "user";
+  token?: string;
 }
 
 type TokenPayload = {
@@ -14,30 +15,37 @@ type TokenPayload = {
   role?: "admin" | "user";
 };
 
-export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+import { createSupabaseClient } from "../lib/supabaseClient";
+
+export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Unauthorized: No token provided" });
     }
 
     const token = authHeader.split(" ")[1];
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      return res.status(500).json({ message: "Authentication secret is not configured." });
+    
+    // Verify token with Supabase and get user
+    const supabase = createSupabaseClient(token);
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return res.status(401).json({ message: "Unauthorized: Invalid token" });
     }
 
-    const payload = jwt.verify(token, jwtSecret as string) as TokenPayload;
-    if (!payload || !payload.userId) {
-      return res.status(401).json({ message: "Invalid token" });
-    }
-
-    const request = req as AuthenticatedRequest;
-    request.userId = payload.userId;
-    request.role = payload.role ?? "user";
+    // Attach user to request
+    (req as AuthenticatedRequest).userId = user.id;
+    // Check for admin role based on email or other criteria
+    const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
+    const isOwner = adminEmail && user.email?.toLowerCase() === adminEmail;
+    
+    (req as AuthenticatedRequest).role = isOwner ? "admin" : "user";
+    (req as AuthenticatedRequest).token = token;
 
     next();
   } catch (error) {
+    console.error("Auth middleware error:", error);
     return res.status(401).json({ message: "Unauthorized" });
   }
 }

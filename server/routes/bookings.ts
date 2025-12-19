@@ -3,18 +3,21 @@
  */
 import type { RequestHandler } from "express";
 import type { Booking } from "../../shared/types";
-import { supabase } from "../lib/supabaseClient";
+import { createSupabaseClient } from "../lib/supabaseClient";
+import type { AuthenticatedRequest } from "../middleware/auth";
 
 const BOOKING_COLUMNS = "id, user_id, trip_id, created_at, payment_status, payment_provider, payment_metadata, start_date";
 const TRIP_COLUMNS = "id, name, location, description, price, image_url, start_date, created_at";
 
 export const handleCreateBooking: RequestHandler = async (req, res) => {
   try {
-    const userId = (req as { userId?: string | number }).userId;
+    const { userId, token } = req as AuthenticatedRequest;
     const { trip_id } = req.body as { trip_id?: string };
 
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!userId || !token) return res.status(401).json({ message: "Unauthorized" });
     if (!trip_id) return res.status(400).json({ message: "trip_id is required" });
+
+    const supabase = createSupabaseClient(token);
 
     const { data, error } = await supabase
       .from("bookings")
@@ -36,8 +39,10 @@ export const handleCreateBooking: RequestHandler = async (req, res) => {
 
 export const handleGetMyBookings: RequestHandler = async (req, res) => {
   try {
-    const userId = (req as { userId?: string | number }).userId;
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    const { userId, token } = req as AuthenticatedRequest;
+    if (!userId || !token) return res.status(401).json({ message: "Unauthorized" });
+
+    const supabase = createSupabaseClient(token);
 
     const { data, error } = await supabase
       .from("bookings")

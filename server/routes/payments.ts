@@ -2,7 +2,7 @@
  * Payments API: integrates with PayFast to create hosted payment sessions and persist booking state.
  */
 import type { RequestHandler } from "express";
-import { supabase } from "../lib/supabaseClient";
+import { createSupabaseClient } from "../lib/supabaseClient";
 import type { AuthenticatedRequest } from "../middleware/auth";
 import {
   PAYFAST_PRODUCTION_URL,
@@ -26,13 +26,13 @@ function toTwoDecimalPlaces(amount: number) {
 
 export const handleCreatePayment: RequestHandler = async (req, res) => {
   try {
-    const { userId } = req as AuthenticatedRequest;
+    const { userId, token } = req as AuthenticatedRequest;
     const { trip_id: tripId, start_date: startDate } = req.body as {
       trip_id?: string;
       start_date?: string;
     };
 
-    if (!userId) {
+    if (!userId || !token) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -47,6 +47,8 @@ export const handleCreatePayment: RequestHandler = async (req, res) => {
       return res.status(500).json({ message: "PayFast credentials are not configured." });
     }
 
+    const supabase = createSupabaseClient(token);
+
     const [{ data: trip, error: tripError }, { data: userProfile, error: userError }] = await Promise.all([
       supabase
         .from("trips")
@@ -54,7 +56,7 @@ export const handleCreatePayment: RequestHandler = async (req, res) => {
         .eq("id", tripId)
         .single(),
       supabase
-        .from("users")
+        .from("profiles")
         .select("email, full_name")
         .eq("id", userId)
         .single(),

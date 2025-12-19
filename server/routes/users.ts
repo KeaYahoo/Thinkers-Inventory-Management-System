@@ -2,24 +2,23 @@
  * Users API Hardened: exposes and mutates authenticated profile data without leaking sensitive fields.
  */
 import type { Request, RequestHandler } from "express";
-import { supabase } from "../lib/supabaseClient";
-
-interface RequestWithUserId extends Request {
-  userId?: string | number;
-}
+import { createSupabaseClient } from "../lib/supabaseClient";
+import type { AuthenticatedRequest } from "../middleware/auth";
 
 const USER_COLUMNS = "id, email, full_name, avatar_url";
 
 export const handleGetCurrentUser: RequestHandler = async (req, res) => {
   try {
-    const userId = (req as RequestWithUserId).userId;
+    const { userId, token } = req as AuthenticatedRequest;
 
-    if (!userId) {
+    if (!userId || !token) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    const supabase = createSupabaseClient(token);
+
     const { data, error } = await supabase
-      .from("users")
+      .from("profiles")
       .select(USER_COLUMNS)
       .eq("id", userId)
       .single();
@@ -42,8 +41,8 @@ export const handleGetCurrentUser: RequestHandler = async (req, res) => {
 
 export const handleUpdateUser: RequestHandler = async (req, res) => {
   try {
-    const userId = (req as RequestWithUserId).userId;
-    if (!userId) {
+    const { userId, token } = req as AuthenticatedRequest;
+    if (!userId || !token) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -86,8 +85,10 @@ export const handleUpdateUser: RequestHandler = async (req, res) => {
       return res.status(400).json({ message: "No profile fields provided." });
     }
 
+    const supabase = createSupabaseClient(token);
+
     const { data, error } = await supabase
-      .from("users")
+      .from("profiles")
       .update(updates)
       .eq("id", userId)
       .select(USER_COLUMNS)

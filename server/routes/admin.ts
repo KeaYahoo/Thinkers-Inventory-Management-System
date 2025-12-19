@@ -2,16 +2,22 @@
  * Admin Routes: review moderation endpoints restricted to admin users.
  */
 import type { RequestHandler } from "express";
-import { supabase } from "../lib/supabaseClient";
+import { createSupabaseClient } from "../lib/supabaseClient";
+import type { AuthenticatedRequest } from "../middleware/auth";
 
 const REVIEW_COLUMNS = "id, rating, comment, user_id, trip_id, created_at, is_approved";
 const USER_COLUMNS = "id, email";
 
-export const handleGetPendingReviews: RequestHandler = async (_req, res) => {
+export const handleGetPendingReviews: RequestHandler = async (req, res) => {
   try {
+    const { token } = req as AuthenticatedRequest;
+    if (!token) return res.status(401).json({ message: "Unauthorized" });
+    
+    const supabase = createSupabaseClient(token);
+
     const { data, error } = await supabase
       .from("reviews")
-      .select(`${REVIEW_COLUMNS}, user:users(${USER_COLUMNS})`)
+      .select(`${REVIEW_COLUMNS}, user:profiles(${USER_COLUMNS})`)
       .eq("is_approved", false)
       .order("created_at", { ascending: true });
 
@@ -30,9 +36,14 @@ export const handleGetPendingReviews: RequestHandler = async (_req, res) => {
 export const handleApproveReview: RequestHandler = async (req, res) => {
   try {
     const { reviewId } = req.params as { reviewId?: string };
+    const { token } = req as AuthenticatedRequest;
+
     if (!reviewId) {
       return res.status(400).json({ message: "Review identifier is required." });
     }
+    if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+    const supabase = createSupabaseClient(token);
 
     const { error } = await supabase
       .from("reviews")
@@ -54,9 +65,14 @@ export const handleApproveReview: RequestHandler = async (req, res) => {
 export const handleDeleteReview: RequestHandler = async (req, res) => {
   try {
     const { reviewId } = req.params as { reviewId?: string };
+    const { token } = req as AuthenticatedRequest;
+
     if (!reviewId) {
       return res.status(400).json({ message: "Review identifier is required." });
     }
+    if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+    const supabase = createSupabaseClient(token);
 
     const { error } = await supabase
       .from("reviews")

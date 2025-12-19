@@ -6,7 +6,6 @@ import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleChat } from "./routes/chat";
-import { handleRegister, handleLogin } from "./routes/auth";
 import { handleGetDestinations } from "./routes/destinations";
 import { handleGetServices } from "./routes/services";
 import { handleGetTrips, handleGetTripById, handleGetTripAvailability } from "./routes/trips";
@@ -22,12 +21,6 @@ import { handleGetCurrentUser, handleUpdateUser } from "./routes/users";
 import { handleGetPendingReviews, handleApproveReview, handleDeleteReview } from "./routes/admin";
 
 export function createServer() {
-  const jwtSecret = process.env.JWT_SECRET;
-  if (!jwtSecret) {
-    console.error("FATAL ERROR: JWT_SECRET is not defined in the environment variables. Server cannot start.");
-    process.exit(1);
-  }
-
   const app = express();
 
   // Middleware
@@ -43,8 +36,7 @@ export function createServer() {
 
   app.get("/api/demo", handleDemo);
   app.post("/api/chat", handleChat);
-  app.post("/api/auth/register", handleRegister);
-  app.post("/api/auth/login", handleLogin);
+
   app.get("/api/destinations", handleGetDestinations);
   app.get("/api/services", handleGetServices);
   app.get("/api/trips", handleGetTrips);
